@@ -1,0 +1,2 @@
+CREATE DATABASE IF NOT EXISTS lbs_secondhand DEFAULT CHARACTER SET utf8mb4;
+USE lbs_secondhand;

@@ -1,0 +1,102 @@
+.publish-page {
+  min-height: 100vh;
+  padding: 24rpx;
+  padding-bottom: 160rpx;
+
+  .loading-tip {
+    display: block;
+    text-align: center;
+    padding: 120rpx 0;
+    color: #999;
+  }
+}
+
+.form {
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 24rpx;
+
+  .row {
+    padding: 24rpx 0;
+    border-bottom: 1rpx solid #eee;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .label {
+      font-size: 28rpx;
+      color: #333;
+      margin-bottom: 16rpx;
+      display: block;
+    }
+
+    .input {
+      background: #f5f5f5;
+      padding: 20rpx;
+      border-radius: 8rpx;
+    }
+
+    .imgs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16rpx;
+
+      .img {
+        width: 160rpx;
+        height: 160rpx;
+        border-radius: 8rpx;
+      }
+
+      .add-img {
+        width: 160rpx;
+        height: 160rpx;
+        border: 2rpx dashed #ccc;
+        border-radius: 8rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 48rpx;
+        color: #999;
+      }
+    }
+
+    .categories {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16rpx;
+
+      .tag {
+        padding: 12rpx 24rpx;
+        background: #f0f0f0;
+        border-radius: 8rpx;
+        font-size: 26rpx;
+
+        &.active {
+          background: #07c160;
+          color: #fff;
+        }
+      }
+    }
+
+    .textarea {
+      width: 100%;
+      min-height: 120rpx;
+      background: #f5f5f5;
+      padding: 20rpx;
+      border-radius: 8rpx;
+      box-sizing: border-box;
+    }
+
+    .location-btn {
+      color: #07c160;
+      font-size: 28rpx;
+    }
+  }
+}
+
+.submit {
+  margin-top: 48rpx;
+  background: #07c160;
+  color: #fff;
+}
