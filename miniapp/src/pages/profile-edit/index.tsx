@@ -45,8 +45,29 @@ export default function ProfileEdit() {
     )
   }
 
+  const fillFromWechat = () => {
+    Taro.getUserProfile({
+      desc: '用于展示头像与昵称',
+    })
+      .then((res) => {
+        const { nickName: n, avatarUrl: a } = res.userInfo || {}
+        const payload: { nickName?: string; avatar?: string } = {}
+        if (n) payload.nickName = n
+        if (a) payload.avatar = a
+        if (!Object.keys(payload).length) return
+        userApi.updateProfile(payload).then(() => {
+          if (n) setNickName(n)
+          Taro.showToast({ title: '已同步微信头像与昵称' })
+        })
+      })
+      .catch(() => Taro.showToast({ title: '需要授权才能获取', icon: 'none' }))
+  }
+
   return (
     <View className="profile-edit-page">
+      <Button className="wechat-fill-btn" onClick={fillFromWechat}>
+        使用微信头像与昵称
+      </Button>
       <View className="form">
         <View className="row">
           <Text className="label">昵称</Text>

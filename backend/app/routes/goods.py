@@ -1,7 +1,7 @@
 import math
 from flask import Blueprint, request
 from app import db
-from app.models import Goods, User, Category
+from app.models import Goods, User, Category, GoodsComment
 from .user import get_current_user
 
 goods_bp = Blueprint('goods', __name__)
@@ -80,6 +80,7 @@ def list_goods():
     radius = request.args.get('radius', type=float)
     category = request.args.get('category')
     keyword = request.args.get('keyword')
+    campus = request.args.get('campus')  # 校区/楼栋筛选 LR-005
     page = request.args.get('page', 1, type=int)
     page_size = request.args.get('pageSize', 20, type=int)
 
@@ -93,6 +94,8 @@ def list_goods():
                 q = q.filter(Goods.category_id == c.id)
     if keyword:
         q = q.filter(Goods.title.contains(keyword))
+    if campus and campus.strip() and campus != '全部':
+        q = q.join(User, Goods.user_id == User.id).filter(User.campus.contains(campus.strip()))
     q = q.order_by(Goods.create_time.desc())
     pagination = q.paginate(page=page, per_page=page_size)
 
@@ -107,6 +110,61 @@ def list_goods():
         list_data = [g.to_dict() for g in items]
 
     return {'list': list_data, 'total': pagination.total}
+
+
+@goods_bp.route('/<int:gid>/comments', methods=['GET'])
+def list_comments(gid):
+    """商品评论列表"""
+    g = Goods.query.get(gid)
+    if not g:
+        return {'message': '商品不存在'}, 404
+    page = request.args.get('page', 1, type=int)
+    page_size = request.args.get('pageSize', 20, type=int)
+    q = GoodsComment.query.filter_by(goods_id=gid).order_by(GoodsComment.create_time.desc())
+    pagination = q.paginate(page=page, per_page=page_size)
+    result = []
+    for c in pagination.items:
+        item = {
+            'id': c.id,
+            'goodsId': c.goods_id,
+            'userId': c.user_id,
+            'content': c.content,
+            'createTime': c.create_time.isoformat() if c.create_time else '',
+        }
+        if c.user:
+            item['user'] = c.user.to_dict()
+        result.append(item)
+    return {'list': result, 'total': pagination.total}
+
+
+@goods_bp.route('/<int:gid>/comments', methods=['POST'])
+def create_comment(gid):
+    """发表商品评论"""
+    user = get_current_user()
+    if not user:
+        return {'message': '未登录'}, 401
+    g = Goods.query.get(gid)
+    if not g:
+        return {'message': '商品不存在'}, 404
+    if g.status != 1:
+        return {'message': '商品已下架或已售'}, 400
+    data = request.get_json() or {}
+    content = (data.get('content') or '').strip()
+    if not content:
+        return {'message': '评论内容不能为空'}, 400
+    if len(content) > 500:
+        return {'message': '评论最多500字'}, 400
+    c = GoodsComment(goods_id=gid, user_id=user.id, content=content)
+    db.session.add(c)
+    db.session.commit()
+    return {
+        'id': c.id,
+        'goodsId': c.goods_id,
+        'userId': c.user_id,
+        'content': c.content,
+        'createTime': c.create_time.isoformat() if c.create_time else '',
+        'user': user.to_dict(),
+    }
 
 
 @goods_bp.route('/<int:gid>', methods=['GET'])

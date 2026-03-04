@@ -33,6 +33,14 @@
   background: #fff;
   border-bottom: 1rpx solid #eee;
 
+  .bar-label {
+    display: inline-block;
+    margin-right: 12rpx;
+    font-size: 24rpx;
+    color: #999;
+    vertical-align: middle;
+  }
+
   .cat-item {
     display: inline-block;
     padding: 12rpx 28rpx;

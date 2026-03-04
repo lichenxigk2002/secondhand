@@ -1,13 +1,20 @@
 import { useState, useEffect } from 'react'
-import { View, Text, Image, Button, Swiper, SwiperItem } from '@tarojs/components'
+import { View, Text, Image, Button, Swiper, SwiperItem, Input, ScrollView } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { goodsApi, favoriteApi, browseApi, reportApi, Goods } from '@/services/api'
+import { goodsApi, favoriteApi, browseApi, reportApi, goodsCommentApi, Goods, GoodsCommentItem } from '@/services/api'
 import './index.scss'
 
 export default function Detail() {
   const [goods, setGoods] = useState<Goods | null>(null)
   const [loading, setLoading] = useState(true)
   const [favorited, setFavorited] = useState(false)
+  const [comments, setComments] = useState<GoodsCommentItem[]>([])
+  const [commentInput, setCommentInput] = useState('')
+  const [commentSubmitting, setCommentSubmitting] = useState(false)
+
+  const loadComments = (gid: number) => {
+    goodsCommentApi.list(gid).then((res) => setComments(res?.list || [])).catch(() => setComments([]))
+  }
 
   useEffect(() => {
     const r = Taro.getCurrentInstance().router?.params
@@ -17,6 +24,7 @@ export default function Detail() {
         .get(idNum)
         .then((g) => {
           setGoods(g)
+          loadComments(g.id)
           if (Taro.getStorageSync('token')) {
             browseApi.record(g.id).catch(() => {})
           }
@@ -61,6 +69,40 @@ export default function Detail() {
           .then(() => Taro.showToast({ title: '举报已提交' }))
       },
     })
+  }
+
+  const submitComment = () => {
+    if (!goods) return
+    const content = commentInput.trim()
+    if (!content) {
+      Taro.showToast({ title: '请输入评论内容', icon: 'none' })
+      return
+    }
+    if (!Taro.getStorageSync('token')) {
+      Taro.showToast({ title: '请先登录', icon: 'none' })
+      return
+    }
+    setCommentSubmitting(true)
+    goodsCommentApi
+      .create(goods.id, content)
+      .then((newComment) => {
+        setComments((prev) => [newComment, ...prev])
+        setCommentInput('')
+        Taro.showToast({ title: '评论成功' })
+      })
+      .catch(() => {})
+      .finally(() => setCommentSubmitting(false))
+  }
+
+  const formatCommentTime = (iso: string) => {
+    if (!iso) return ''
+    const d = new Date(iso)
+    const now = new Date()
+    const diff = now.getTime() - d.getTime()
+    if (diff < 60000) return '刚刚'
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`
+    if (d.toDateString() === now.toDateString()) return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+    return d.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
   }
 
   if (loading) {
@@ -135,6 +177,42 @@ export default function Detail() {
           联系卖家
         </Button>
         <Text className="report-link" onClick={report}>举报</Text>
+      </View>
+
+      <View className="comment-section">
+        <Text className="comment-title">评论 ({comments.length})</Text>
+        <View className="comment-input-row">
+          <Input
+            className="comment-input"
+            placeholder="说点什么..."
+            value={commentInput}
+            onInput={(e) => setCommentInput(e.detail.value)}
+            maxlength={500}
+          />
+          <Button className="comment-submit" size="mini" onClick={submitComment} loading={commentSubmitting}>
+            发送
+          </Button>
+        </View>
+        <View className="comment-list">
+          {comments.length === 0 ? (
+            <Text className="comment-empty">暂无评论</Text>
+          ) : (
+            comments.map((c) => (
+              <View key={c.id} className="comment-item">
+                <Image
+                  src={c.user?.avatar || ''}
+                  className="comment-avatar"
+                  mode="aspectFill"
+                />
+                <View className="comment-body">
+                  <Text className="comment-user">{c.user?.nickName || '用户'}</Text>
+                  <Text className="comment-content">{c.content}</Text>
+                  <Text className="comment-time">{formatCommentTime(c.createTime)}</Text>
+                </View>
+              </View>
+            ))
+          )}
+        </View>
       </View>
     </View>
   )

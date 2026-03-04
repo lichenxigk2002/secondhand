@@ -6,6 +6,7 @@ import GoodCard from '@/components/GoodCard'
 import './index.scss'
 
 const CATEGORIES = ['全部', '数码', '书籍', '生活用品', '服饰', '其他']
+const CAMPUSES = ['全部', '南校区', '北校区', '东区', '西区', '其他']  // 校区/楼栋筛选 LR-005
 
 export default function Index() {
   const [list, setList] = useState<Goods[]>([])
@@ -13,17 +14,19 @@ export default function Index() {
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list')
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [category, setCategory] = useState('全部')
+  const [campus, setCampus] = useState('全部')
   const [keyword, setKeyword] = useState('')
 
   useEffect(() => {
     loadLocationAndGoods()
-  }, [category, keyword])
+  }, [category, campus, keyword])
 
   const loadLocationAndGoods = async () => {
     setLoading(true)
     try {
       const params: any = { page: 1, pageSize: 20 }
       if (category && category !== '全部') params.category = category
+      if (campus && campus !== '全部') params.campus = campus
       if (keyword.trim()) params.keyword = keyword.trim()
 
       let loc = location
@@ -82,6 +85,19 @@ export default function Index() {
             key={c}
             className={`cat-item ${category === c ? 'active' : ''}`}
             onClick={() => setCategory(c)}
+          >
+            {c}
+          </Text>
+        ))}
+      </ScrollView>
+
+      <ScrollView scrollX className="category-bar campus-bar" enhanced showScrollbar={false}>
+        <Text className="bar-label">校区/楼栋：</Text>
+        {CAMPUSES.map((c) => (
+          <Text
+            key={c}
+            className={`cat-item ${campus === c ? 'active' : ''}`}
+            onClick={() => setCampus(c)}
           >
             {c}
           </Text>

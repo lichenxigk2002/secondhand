@@ -225,6 +225,19 @@ class BrowseHistory(db.Model):
     create_time = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+class GoodsComment(db.Model):
+    """商品评论表（商品下的留言）"""
+    __tablename__ = 'goods_comment'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    goods_id = db.Column(db.Integer, db.ForeignKey('goods.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    content = db.Column(db.String(512), nullable=False)
+    create_time = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', backref=db.backref('goods_comments', lazy='dynamic'))
+    goods = db.relationship('Goods', backref=db.backref('comments', lazy='dynamic'))
+
+
 class Favorite(db.Model):
     """收藏表"""
     __tablename__ = 'favorite'

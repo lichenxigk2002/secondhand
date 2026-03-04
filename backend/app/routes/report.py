@@ -22,7 +22,7 @@ def create_report():
     content = (data.get('content') or '').strip()
     if not target_type or not target_id:
         return {'message': '缺少 targetType 或 targetId'}, 400
-    if target_type not in ('goods', 'user', 'message'):
+    if target_type not in ('goods', 'user', 'message', 'evaluation'):
         return {'message': 'targetType 无效'}, 400
     r = Report(
         reporter_id=user.id,

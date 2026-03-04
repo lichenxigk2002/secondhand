@@ -32,6 +32,7 @@ export interface GoodsListParams {
   radius?: number
   category?: string
   keyword?: string
+  campus?: string
   page?: number
   pageSize?: number
 }
@@ -96,6 +97,8 @@ export const evaluationApi = {
 }
 
 export const messageApi = {
+  getUnreadCount: () =>
+    api.get<{ count: number }>('/api/message/unread-count'),
   listConversations: () =>
     api.get<{ list: Conversation[] }>('/api/message/conversations'),
   getOrCreateConversation: (targetId: number, goodsId?: number) =>
@@ -116,7 +119,7 @@ export const messageApi = {
 }
 
 export const reportApi = {
-  create: (targetType: 'goods' | 'user', targetId: number, reason: string, content?: string) =>
+  create: (targetType: 'goods' | 'user' | 'evaluation', targetId: number, reason: string, content?: string) =>
     api.post('/api/report', { targetType, targetId, reason, content }),
 }
 
@@ -133,6 +136,22 @@ export const favoriteApi = {
     api.get<{ favorited: boolean }>(`/api/favorite/check/${goodsId}`),
   toggle: (goodsId: number) =>
     api.post<{ favorited: boolean }>(`/api/favorite/toggle/${goodsId}`),
+}
+
+export interface GoodsCommentItem {
+  id: number
+  goodsId: number
+  userId: number
+  content: string
+  createTime: string
+  user?: User
+}
+
+export const goodsCommentApi = {
+  list: (goodsId: number, page = 1) =>
+    api.get<{ list: GoodsCommentItem[]; total: number }>(`/api/goods/${goodsId}/comments`, { page, pageSize: 20 }),
+  create: (goodsId: number, content: string) =>
+    api.post<GoodsCommentItem>(`/api/goods/${goodsId}/comments`, { content }),
 }
 
 export const goodsApi = {

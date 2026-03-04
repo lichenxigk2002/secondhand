@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { View, Text, Image, Button } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { userApi } from '@/services/api'
+import { userApi, messageApi } from '@/services/api'
 import type { User } from '@/services/api'
 import './index.scss'
 
@@ -10,7 +10,28 @@ export default function UserPage() {
 
   useEffect(() => {
     loadUser()
+    updateMessageBadge()
   }, [])
+
+  Taro.useDidShow(() => updateMessageBadge())
+
+  const updateMessageBadge = () => {
+    if (!Taro.getStorageSync('token')) {
+      Taro.removeTabBarBadge({ index: 2 }).catch(() => {})
+      return
+    }
+    messageApi
+      .getUnreadCount()
+      .then((res) => {
+        const n = res?.count ?? 0
+        if (n > 0) {
+          Taro.setTabBarBadge({ index: 2, text: n > 99 ? '99+' : String(n) })
+        } else {
+          Taro.removeTabBarBadge({ index: 2 }).catch(() => {})
+        }
+      })
+      .catch(() => Taro.removeTabBarBadge({ index: 2 }).catch(() => {}))
+  }
 
   const loadUser = () => {
     const token = Taro.getStorageSync('token')
@@ -80,6 +101,10 @@ export default function UserPage() {
         </View>
         <View className="item" onClick={() => goTo('/pages/chat-list/index')}>
           <Text>我的消息</Text>
+          <Text className="arrow">&gt;</Text>
+        </View>
+        <View className="item" onClick={() => goTo('/pages/evaluations-received/index')}>
+          <Text>收到的评价</Text>
           <Text className="arrow">&gt;</Text>
         </View>
       </View>

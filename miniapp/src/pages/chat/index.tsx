@@ -1,8 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
 import { View, Text, ScrollView, Input, Button } from '@tarojs/components'
-import Taro from '@tarojs/taro'
+import Taro, { SocketTask } from '@tarojs/taro'
 import { messageApi, orderApi, ChatMessage } from '@/services/api'
 import './index.scss'
+
+const WS_BASE =
+  process.env.TARO_APP_WS ||
+  (process.env.TARO_APP_API || 'http://localhost:5001')
+    .replace(/^http:/i, 'ws:')
+    .replace(/^https:/i, 'wss:')
 
 export default function Chat() {
   const [conversationId, setConversationId] = useState(0)
@@ -12,6 +18,7 @@ export default function Chat() {
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const scrollRef = useRef<any>()
+  const socketRef = useRef<SocketTask | null>(null)
 
   useEffect(() => {
     const r = Taro.getCurrentInstance().router?.params
@@ -44,6 +51,49 @@ export default function Chat() {
     }
   }, [])
 
+  useEffect(() => {
+    if (!conversationId) return
+    const token = Taro.getStorageSync('token')
+    if (!token) return
+    const url =
+      WS_BASE.replace(/\/$/, '') +
+      `/ws/chat?token=${encodeURIComponent(token)}`
+
+    Taro.connectSocket({ url }).then((task) => {
+      socketRef.current = task
+      task.onOpen(() => {
+        // 连接成功后不需要额外 auth，token 已在 query 中
+      })
+      task.onMessage((msg) => {
+        try {
+          const data = JSON.parse((msg as any).data as string)
+          if (data.type === 'message' && data.message?.conversationId === conversationId) {
+            const m = data.message as ChatMessage & { conversationId: number }
+            setMessages((prev) => [...prev, m])
+            setTimeout(() => scrollRef.current?.scrollTo({ scrollTop: 99999 }), 100)
+          }
+        } catch {
+          // ignore
+        }
+      })
+      task.onError(() => {
+        // 出错时不强制提示，仍可走 HTTP 发送
+      })
+      task.onClose(() => {
+        if (socketRef.current === task) {
+          socketRef.current = null
+        }
+      })
+    })
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.close({})
+        socketRef.current = null
+      }
+    }
+  }, [conversationId])
+
   const loadMessages = (cid: number) => {
     setLoading(true)
     messageApi
@@ -58,14 +108,29 @@ export default function Chat() {
     if (!text || !conversationId || sending) return
     setSending(true)
     setContent('')
-    messageApi
-      .sendMessage(conversationId, text)
-      .then((msg) => {
-        setMessages((prev) => [...prev, msg])
-        setTimeout(() => scrollRef.current?.scrollTo({ scrollTop: 99999 }), 100)
-      })
-      .catch(() => setContent(text))
-      .finally(() => setSending(false))
+
+    const payload = {
+      type: 'send',
+      conversationId,
+      content: text,
+    }
+
+    const ws = socketRef.current
+    if (ws) {
+      ws.send({ data: JSON.stringify(payload) })
+      // 实际消息到达由服务端广播再追加
+      setSending(false)
+    } else {
+      // 回退到 HTTP 发送
+      messageApi
+        .sendMessage(conversationId, text)
+        .then((msg) => {
+          setMessages((prev) => [...prev, msg])
+          setTimeout(() => scrollRef.current?.scrollTo({ scrollTop: 99999 }), 100)
+        })
+        .catch(() => setContent(text))
+        .finally(() => setSending(false))
+    }
   }
 
   const formatTime = (iso: string) => {

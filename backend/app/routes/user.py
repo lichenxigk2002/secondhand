@@ -71,6 +71,8 @@ def update_profile():
     data = request.get_json() or {}
     if 'nickName' in data:
         user.nick_name = data['nickName']
+    if 'avatar' in data:
+        user.avatar = data['avatar']
     if 'phone' in data:
         user.phone = data['phone']
     if 'campus' in data:

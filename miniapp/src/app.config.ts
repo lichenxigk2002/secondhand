@@ -12,6 +12,7 @@ export default defineAppConfig({
     'pages/orders/index',
     'pages/evaluate/index',
     'pages/browse-history/index',
+    'pages/evaluations-received/index',
   ],
   window: {
     backgroundTextStyle: 'light',
