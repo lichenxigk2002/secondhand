@@ -19,7 +19,8 @@
     "@tarojs/runtime": "3.6.31",
     "@tarojs/taro": "3.6.31",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "taro-icons": "^0.4.0"
   },
   "devDependencies": {
     "@babel/core": "^7.22.0",
@@ -27,6 +28,7 @@
     "@tarojs/webpack5-runner": "3.6.31",
     "@types/react": "^18.2.0",
     "babel-preset-taro": "^3.6.31",
+    "pngjs": "^7.0.0",
     "typescript": "^5.0.0",
     "webpack": "5.78.0"
   },

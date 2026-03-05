@@ -50,13 +50,13 @@ export default function ChatList() {
     return (
       <View className="chat-list-page">
         <View className="login-tip">
-          <Text>登录后查看消息</Text>
-          <Text
+          <Text className="tip-text">登录后查看消息</Text>
+          <View
             className="btn"
             onClick={() => Taro.switchTab({ url: '/pages/user/index' })}
           >
             去登录
-          </Text>
+          </View>
         </View>
       </View>
     )
@@ -66,43 +66,49 @@ export default function ChatList() {
     <View className="chat-list-page">
       <ScrollView scrollY className="list" onScrollToUpper={load}>
         {loading ? (
-          <Text className="loading">加载中...</Text>
+          <View className="loading-box">
+            <Text className="loading-text">加载中...</Text>
+          </View>
         ) : list.length === 0 ? (
           <View className="empty">
-            <Text className="empty-icon">💬</Text>
+            <Image src="https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0" className="empty-img" />
             <Text className="empty-text">暂无会话</Text>
             <Text className="empty-hint">在商品详情页联系卖家开始聊天</Text>
           </View>
         ) : (
-          list.map((c) => (
-            <View
-              key={c.id}
-              className="item"
-              onClick={() => goChat(c)}
-            >
-              <Image
-                src={c.otherUser?.avatar || ''}
-                className="avatar"
-                mode="aspectFill"
-              />
-              <View className="info">
-                <View className="row">
-                  <Text className="name">{c.otherUser?.nickName || '用户'}</Text>
-                  <Text className="time">{formatTime(c.lastMessageAt)}</Text>
-                </View>
-                <View className="row">
-                  <Text className="last-msg" numberOfLines={1}>
-                    {c.lastMessage || '暂无消息'}
-                  </Text>
+          <View className="list-content">
+            {list.map((c) => (
+              <View
+                key={c.id}
+                className="item"
+                onClick={() => goChat(c)}
+              >
+                <View className="avatar-wrap">
+                  <Image
+                    src={c.otherUser?.avatar || ''}
+                    className="avatar"
+                    mode="aspectFill"
+                  />
                   {c.unread > 0 && (
-                    <View className="unread">
+                    <View className="badge">
                       <Text>{c.unread > 99 ? '99+' : c.unread}</Text>
                     </View>
                   )}
                 </View>
+                <View className="info">
+                  <View className="row top">
+                    <Text className="name">{c.otherUser?.nickName || '用户'}</Text>
+                    <Text className="time">{formatTime(c.lastMessageAt)}</Text>
+                  </View>
+                  <View className="row bottom">
+                    <Text className="last-msg">
+                      {c.lastMessage || '暂无消息'}
+                    </Text>
+                  </View>
+                </View>
               </View>
-            </View>
-          ))
+            ))}
+          </View>
         )}
       </ScrollView>
     </View>

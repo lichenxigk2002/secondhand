@@ -13,7 +13,11 @@ const config = {
   sourceRoot: 'src',
   outputRoot: 'dist',
   plugins: ['@tarojs/plugin-framework-react'],
-  defineConstants: {},
+  defineConstants: {
+    // 小程序运行时没有 process，在构建时把环境变量内联进去
+    'process.env.TARO_APP_API': JSON.stringify(process.env.TARO_APP_API || 'http://localhost:5000'),
+    'process.env.TARO_APP_WS': JSON.stringify(process.env.TARO_APP_WS || ''),
+  },
   copy: {
     patterns: [{ from: 'src/assets', to: 'dist/assets' }],
     options: {},

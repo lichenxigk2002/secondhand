@@ -1,12 +1,21 @@
 import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, Map, Input } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import { Ionicons } from 'taro-icons'
 import { goodsApi, Goods } from '@/services/api'
 import GoodCard from '@/components/GoodCard'
+import { setTabBarSelected } from '@/utils/tabbar-state'
 import './index.scss'
 
-const CATEGORIES = ['全部', '数码', '书籍', '生活用品', '服饰', '其他']
-const CAMPUSES = ['全部', '南校区', '北校区', '东区', '西区', '其他']  // 校区/楼栋筛选 LR-005
+const CATEGORIES = [
+  { name: '全部', icon: 'ios-apps', color: '#FFD100' },
+  { name: '数码', icon: 'ios-phone-portrait', color: '#36cfc9' },
+  { name: '书籍', icon: 'ios-book', color: '#597ef7' },
+  { name: '生活', icon: 'ios-basket', color: '#73d13d' }, // 生活用品 -> 生活 (shorter)
+  { name: '服饰', icon: 'ios-shirt', color: '#ff7a45' },
+  { name: '其他', icon: 'ios-grid', color: '#9254de' }
+]
+const CAMPUSES = ['全部', '南校区', '北校区', '东区', '西区', '其他']
 
 export default function Index() {
   const [list, setList] = useState<Goods[]>([])
@@ -20,6 +29,8 @@ export default function Index() {
   useEffect(() => {
     loadLocationAndGoods()
   }, [category, campus, keyword])
+
+  Taro.useDidShow(() => setTabBarSelected(0))
 
   const loadLocationAndGoods = async () => {
     setLoading(true)
@@ -67,57 +78,69 @@ export default function Index() {
   }
 
   return (
-    <View className="index-page">
-      <View className="search-bar">
-        <Input
-          className="search-input"
-          placeholder="搜索商品"
-          value={keyword}
-          onInput={(e) => setKeyword(e.detail.value)}
-          onConfirm={onSearch}
-        />
-        <Text className="search-btn" onClick={onSearch}>搜索</Text>
+    <View className="index-page tab-bar-page">
+      <View className="header-bg" />
+      
+      <View className="search-section">
+        <View className="search-bar">
+          <Ionicons name="ios-search" size={20} color="#999" className="search-icon" />
+          <Input
+            className="search-input"
+            placeholder="搜索好物..."
+            placeholderClass="search-placeholder"
+            value={keyword}
+            onInput={(e) => setKeyword(e.detail.value)}
+            onConfirm={onSearch}
+          />
+          <View className="search-btn" onClick={onSearch}>搜索</View>
+        </View>
       </View>
 
-      <ScrollView scrollX className="category-bar" enhanced showScrollbar={false}>
+      <View className="category-grid">
         {CATEGORIES.map((c) => (
-          <Text
-            key={c}
-            className={`cat-item ${category === c ? 'active' : ''}`}
-            onClick={() => setCategory(c)}
+          <View
+            key={c.name}
+            className={`cat-item ${category === c.name ? 'active' : ''}`}
+            onClick={() => setCategory(c.name)}
           >
-            {c}
-          </Text>
+            <View className="icon-box" style={{ background: category === c.name ? '#FFD100' : '#f5f6f8' }}>
+              <Ionicons 
+                name={c.icon} 
+                size={28} 
+                color={category === c.name ? '#222' : c.color} 
+              />
+            </View>
+            <Text className="name">{c.name}</Text>
+          </View>
         ))}
-      </ScrollView>
+      </View>
 
-      <ScrollView scrollX className="category-bar campus-bar" enhanced showScrollbar={false}>
-        <Text className="bar-label">校区/楼栋：</Text>
-        {CAMPUSES.map((c) => (
-          <Text
-            key={c}
-            className={`cat-item ${campus === c ? 'active' : ''}`}
-            onClick={() => setCampus(c)}
+      <View className="filter-section">
+        <ScrollView scrollX className="campus-bar" enhanced showScrollbar={false}>
+          {CAMPUSES.map((c) => (
+            <Text
+              key={c}
+              className={`chip ${campus === c ? 'active' : ''}`}
+              onClick={() => setCampus(c)}
+            >
+              {c}
+            </Text>
+          ))}
+        </ScrollView>
+        
+        <View className="view-toggle">
+          <View
+            className={`toggle-item ${viewMode === 'list' ? 'active' : ''}`}
+            onClick={() => setViewMode('list')}
           >
-            {c}
-          </Text>
-        ))}
-      </ScrollView>
-
-      <View className="tabs">
-        <View
-          className={`tab ${viewMode === 'list' ? 'active' : ''}`}
-          onClick={() => setViewMode('list')}
-        >
-          <Text>列表</Text>
-          {viewMode === 'list' && <View className="tab-indicator" />}
-        </View>
-        <View
-          className={`tab ${viewMode === 'map' ? 'active' : ''}`}
-          onClick={() => setViewMode('map')}
-        >
-          <Text>地图</Text>
-          {viewMode === 'map' && <View className="tab-indicator" />}
+            <Ionicons name="ios-list" size={20} color={viewMode === 'list' ? '#222' : '#999'} />
+          </View>
+          <View
+            className={`toggle-item ${viewMode === 'map' ? 'active' : ''}`}
+            onClick={() => setViewMode('map')}
+          >
+            <Ionicons name="ios-map" size={20} color={viewMode === 'map' ? '#222' : '#999'} />
+          </View>
         </View>
       </View>
 
@@ -134,21 +157,27 @@ export default function Index() {
             </View>
           ) : list.length === 0 ? (
             <View className="empty-box">
-              <Text className="empty-icon">📦</Text>
-              <Text className="empty-text">暂无附近商品</Text>
-              <Text className="empty-hint">去发布一个吧</Text>
-              <Text
+              <Ionicons name="ios-folder-open" size={64} color="#ccc" />
+              <Text className="empty-text">暂无商品</Text>
+              <View
                 className="empty-btn"
                 onClick={() => Taro.switchTab({ url: '/pages/publish/index' })}
               >
-                立即发布
-              </Text>
+                去发布
+              </View>
             </View>
           ) : (
             <View className="goods-grid">
-              {list.map((item) => (
-                <GoodCard key={item.id} goods={item} />
-              ))}
+              <View className="column">
+                {list.filter((_, i) => i % 2 === 0).map((item) => (
+                  <GoodCard key={item.id} goods={item} />
+                ))}
+              </View>
+              <View className="column">
+                {list.filter((_, i) => i % 2 !== 0).map((item) => (
+                  <GoodCard key={item.id} goods={item} />
+                ))}
+              </View>
             </View>
           )}
         </ScrollView>

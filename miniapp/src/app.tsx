@@ -1,4 +1,5 @@
 import { useLaunch } from '@tarojs/taro'
+import 'taro-icons/scss/Ionicons.scss'
 import './app.scss'
 
 function App(props) {

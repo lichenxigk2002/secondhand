@@ -1,0 +1,67 @@
+.custom-tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 110rpx;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: #fff;
+  display: flex;
+  align-items: flex-end; /* 改为底部对齐 */
+  justify-content: space-around;
+  border-top: 1rpx solid rgba(0,0,0,0.05);
+  box-shadow: 0 -4rpx 16rpx rgba(0,0,0,0.03);
+  z-index: 9999;
+
+  .tab-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding-bottom: 8rpx;
+
+    .tab-icon {
+      width: 56rpx;
+      height: 56rpx;
+      display: block;
+      margin-bottom: 4rpx;
+    }
+
+    .tab-text {
+      font-size: 20rpx;
+      margin-top: 4rpx;
+    }
+    
+    /* 发布按钮特殊样式 */
+    &.publish-btn {
+      position: relative;
+      top: -24rpx; /* 向上突出一部分 */
+      overflow: visible;
+      
+      .publish-icon-wrap {
+        width: 100rpx;
+        height: 100rpx;
+        background: #FFD100; /* 直接写死颜色，避免变量失效 */
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8rpx 20rpx rgba(255, 209, 0, 0.4);
+        margin-bottom: 4rpx;
+
+        .publish-icon {
+          width: 50rpx;
+          height: 50rpx;
+          display: block;
+        }
+      }
+      
+      .tab-text {
+        font-weight: 600;
+        color: #222 !important;
+      }
+    }
+  }
+}

@@ -16,24 +16,28 @@ export default defineAppConfig({
   ],
   window: {
     backgroundTextStyle: 'light',
-    navigationBarBackgroundColor: '#07c160',
+    navigationBarBackgroundColor: '#FFD100',
     navigationBarTitleText: '校园二手',
-    navigationBarTextStyle: 'white',
+    navigationBarTextStyle: 'black',
   },
   tabBar: {
+    custom: true,
     color: '#999',
-    selectedColor: '#07c160',
+    selectedColor: '#222',
     list: [
-      { pagePath: 'pages/index/index', text: '首页', iconPath: 'assets/home.png', selectedIconPath: 'assets/home-active.png' },
-      { pagePath: 'pages/publish/index', text: '发布', iconPath: 'assets/add.png', selectedIconPath: 'assets/add-active.png' },
-      { pagePath: 'pages/user/index', text: '我的', iconPath: 'assets/user.png', selectedIconPath: 'assets/user-active.png' },
+      { pagePath: 'pages/index/index', text: '首页' },
+      { pagePath: 'pages/publish/index', text: '发布' },
+      { pagePath: 'pages/user/index', text: '我的' },
     ],
   },
+  // 仅保留小程序支持的权限说明；scope.album/scope.camera 已废弃，相册与相机在调用时按需授权即可
   permission: {
     'scope.userLocation': {
       desc: '用于展示附近商品和发布时选择位置',
     },
-    'scope.album': { desc: '用于选择商品图片' },
-    'scope.camera': { desc: '用于拍摄商品图片' },
   },
+  requiredPrivateInfos: [
+    'getLocation',
+    'chooseLocation'
+  ],
 })

@@ -21,38 +21,50 @@ def get_current_user():
 
 @user_bp.route('/login', methods=['POST'])
 def login():
-    data = request.get_json()
-    code = data.get('code')
-    if not code:
-        return {'message': '缺少 code'}, 400
+    try:
+        data = request.get_json() or {}
+        code = data.get('code')
+        if not code:
+            return {'message': '缺少 code'}, 400
 
-    appid = current_app.config['WX_APPID']
-    secret = current_app.config['WX_SECRET']
-    if not appid or not secret:
-        return {'message': '未配置微信 AppId/Secret'}, 500
+        appid = current_app.config.get('WX_APPID') or ''
+        secret = current_app.config.get('WX_SECRET') or ''
+        is_dev = bool(current_app.debug)
 
-    url = f'https://api.weixin.qq.com/sns/jscode2session?appid={appid}&secret={secret}&js_code={code}&grant_type=authorization_code'
-    r = requests.get(url)
-    wx_data = r.json()
+        openid = None
+        wx_data = {}
+        if appid and secret:
+            url = f'https://api.weixin.qq.com/sns/jscode2session?appid={appid}&secret={secret}&js_code={code}&grant_type=authorization_code'
+            r = requests.get(url, timeout=10)
+            wx_data = r.json() or {}
+            openid = wx_data.get('openid')
 
-    openid = wx_data.get('openid')
-    if not openid:
-        return {'message': wx_data.get('errmsg', '登录失败')}, 400
+        # 开发环境：微信接口失败时（如游客模式模拟 code）使用模拟 openid，便于本地调试
+        if not openid and is_dev:
+            openid = f'dev_tourist_{code}'
 
-    user = User.query.filter_by(openid=openid).first()
-    if not user:
-        user = User(openid=openid)
-        db.session.add(user)
-        db.session.commit()
+        if not openid:
+            if not appid or not secret:
+                return {'message': '未配置微信 AppId/Secret'}, 500
+            return {'message': wx_data.get('errmsg', '登录失败')}, 400
 
-    token = jwt.encode(
-        {'user_id': user.id},
-        current_app.config['SECRET_KEY'],
-        algorithm='HS256',
-    )
-    if isinstance(token, bytes):
-        token = token.decode()
-    return {'token': token, 'user': user.to_dict()}
+        user = User.query.filter_by(openid=openid).first()
+        if not user:
+            user = User(openid=openid)
+            db.session.add(user)
+            db.session.commit()
+
+        token = jwt.encode(
+            {'user_id': user.id},
+            current_app.config['SECRET_KEY'],
+            algorithm='HS256',
+        )
+        if isinstance(token, bytes):
+            token = token.decode()
+        return {'token': token, 'user': user.to_dict()}
+    except Exception as e:
+        current_app.logger.exception('login error')
+        return {'message': f'登录失败: {str(e)}'}, 500
 
 
 @user_bp.route('/profile', methods=['GET'])

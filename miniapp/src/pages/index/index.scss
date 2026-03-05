@@ -2,106 +2,193 @@
   min-height: 100vh;
   padding-bottom: env(safe-area-inset-bottom);
   background: #f7f8fa;
+  position: relative;
+}
+
+.header-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 300rpx;
+  background: linear-gradient(180deg, var(--color-primary) 0%, rgba(255, 209, 0, 0) 100%);
+  z-index: 0;
+}
+
+.search-section {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 16rpx 24rpx;
+  /* background: var(--color-primary);  Let the header-bg show through initially, but ideally this should change on scroll. For simplicity, we keep it transparent or match bg. */
 }
 
 .search-bar {
   display: flex;
   align-items: center;
-  padding: 20rpx 24rpx;
+  padding: 0 16rpx 0 24rpx;
   background: #fff;
-  gap: 16rpx;
+  border-radius: 40rpx;
+  height: 80rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
+
+  .search-icon {
+    margin-right: 12rpx;
+  }
 
   .search-input {
     flex: 1;
-    height: 64rpx;
-    padding: 0 24rpx;
-    background: #f5f6f8;
-    border-radius: 32rpx;
+    height: 80rpx;
     font-size: 28rpx;
+    color: #333;
+  }
+  
+  .search-placeholder {
+    color: #999;
   }
 
   .search-btn {
-    color: #07c160;
-    font-size: 28rpx;
-    font-weight: 500;
-  }
-}
-
-.category-bar {
-  white-space: nowrap;
-  padding: 16rpx 24rpx;
-  background: #fff;
-  border-bottom: 1rpx solid #eee;
-
-  .bar-label {
-    display: inline-block;
-    margin-right: 12rpx;
-    font-size: 24rpx;
-    color: #999;
-    vertical-align: middle;
-  }
-
-  .cat-item {
-    display: inline-block;
-    padding: 12rpx 28rpx;
-    margin-right: 16rpx;
+    padding: 10rpx 24rpx;
+    background: var(--color-primary);
+    color: #222;
     font-size: 26rpx;
-    color: #666;
-    background: #f5f6f8;
-    border-radius: 32rpx;
-
-    &.active {
-      background: #e8f5e9;
-      color: #07c160;
-      font-weight: 500;
-    }
+    font-weight: 600;
+    border-radius: 30rpx;
+    margin-left: 16rpx;
   }
 }
 
-.tabs {
+.category-grid {
+  position: relative;
+  z-index: 1;
   display: flex;
-  padding: 20rpx 24rpx;
+  flex-wrap: wrap;
+  padding: 24rpx;
   background: #fff;
-  border-bottom: 1rpx solid #eee;
+  margin: 24rpx;
+  border-radius: 24rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.02);
+  
+  .cat-item {
+    width: 20%; /* 5 items per row if possible, or adjust */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 24rpx;
+    
+    &:nth-child(n+6) {
+      margin-bottom: 0;
+    }
 
-  .tab {
-    flex: 1;
-    text-align: center;
-    position: relative;
-    padding-bottom: 16rpx;
-
-    text {
-      font-size: 30rpx;
+    .icon-box {
+      width: 88rpx;
+      height: 88rpx;
+      border-radius: 32rpx;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12rpx;
+      transition: all 0.2s;
+    }
+    
+    .name {
+      font-size: 24rpx;
       color: #666;
     }
-
-    &.active text {
-      color: #07c160;
-      font-weight: 600;
+    
+    &.active {
+      .name {
+        color: #222;
+        font-weight: 600;
+      }
+      .icon-box {
+        transform: scale(1.05);
+        box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.1);
+      }
     }
+  }
+}
 
-    .tab-indicator {
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 48rpx;
-      height: 6rpx;
-      background: #07c160;
-      border-radius: 3rpx;
+.filter-section {
+  position: sticky;
+  top: 110rpx; /* Adjust based on search bar height */
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24rpx 16rpx;
+  
+  .campus-bar {
+    flex: 1;
+    white-space: nowrap;
+    margin-right: 24rpx;
+    overflow: hidden;
+    
+    .chip {
+      display: inline-block;
+      padding: 10rpx 24rpx;
+      background: #fff;
+      border-radius: 28rpx;
+      font-size: 26rpx;
+      color: #666;
+      margin-right: 16rpx;
+      box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.02);
+      border: 1rpx solid transparent;
+      
+      &.active {
+        background: #fff;
+        color: #222;
+        font-weight: 600;
+        border-color: var(--color-primary);
+        background: rgba(255, 209, 0, 0.1);
+      }
+    }
+  }
+  
+  .view-toggle {
+    display: flex;
+    background: #fff;
+    border-radius: 32rpx;
+    padding: 6rpx;
+    box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
+    
+    .toggle-item {
+      width: 60rpx;
+      height: 50rpx;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 26rpx;
+      
+      &.active {
+        background: #f5f6f8;
+      }
     }
   }
 }
 
 .goods-list {
-  height: calc(100vh - 340rpx);
+  height: calc(100vh - 400rpx); /* Adjust dynamically */
 }
 
 .goods-grid {
   display: flex;
-  flex-wrap: wrap;
-  padding: 16rpx;
-  gap: 16rpx;
+  padding: 0 24rpx;
+  gap: 20rpx;
+  align-items: flex-start;
+  
+  .column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20rpx;
+    /* width: calc(50% - 10rpx);  Handled by flex: 1 */
+  }
+}
+
+.good-card {
+  width: 100% !important; /* Override the fixed width in component */
+  margin-bottom: 0 !important;
 }
 
 .loading-box,
@@ -118,32 +205,23 @@
   font-size: 28rpx;
 }
 
-.empty-icon {
-  font-size: 96rpx;
-  margin-bottom: 24rpx;
-}
-
 .empty-text {
-  font-size: 32rpx;
-  color: #333;
-  margin-bottom: 8rpx;
-}
-
-.empty-hint {
-  font-size: 26rpx;
-  color: #999;
-  margin-bottom: 32rpx;
+  font-size: 30rpx;
+  color: #666;
+  margin: 24rpx 0 32rpx;
 }
 
 .empty-btn {
-  padding: 20rpx 48rpx;
-  background: #07c160;
-  color: #fff;
+  padding: 16rpx 48rpx;
+  background: var(--color-primary);
+  color: #222;
   font-size: 28rpx;
-  border-radius: 32rpx;
+  font-weight: 600;
+  border-radius: 40rpx;
+  box-shadow: 0 4rpx 12rpx rgba(255, 209, 0, 0.3);
 }
 
 .map {
   width: 100%;
-  height: calc(100vh - 340rpx);
+  height: calc(100vh - 400rpx);
 }

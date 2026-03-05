@@ -3,6 +3,7 @@ import { View, Text, Input, Textarea, Button, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { goodsApi } from '@/services/api'
 import { uploadImages } from '@/utils/upload'
+import { setTabBarSelected } from '@/utils/tabbar-state'
 import './index.scss'
 
 const CATEGORIES = ['数码', '书籍', '生活用品', '服饰', '其他']
@@ -17,6 +18,8 @@ export default function Publish() {
   const [location, setLocation] = useState<{ lat: number; lng: number; name: string } | null>(null)
   const [loading, setLoading] = useState(false)
   const [loadingData, setLoadingData] = useState(false)
+
+  Taro.useDidShow(() => setTabBarSelected(1))
 
   useEffect(() => {
     const id = Number(Taro.getCurrentInstance().router?.params?.id)
@@ -59,8 +62,29 @@ export default function Publish() {
       longitude: location?.lng,
     }).then((loc) => {
       setLocation({ lat: loc.latitude, lng: loc.longitude, name: loc.address || loc.name })
-    }).catch(() => {
-      Taro.showToast({ title: '需要授权位置', icon: 'none' })
+    }).catch((err) => {
+      console.log('chooseLocation fail', err)
+      // 检查是否是因为权限被拒绝
+      Taro.getSetting({
+        success: (res) => {
+          if (res.authSetting['scope.userLocation'] === false) {
+            // 用户之前拒绝过，需要引导去设置开启
+            Taro.showModal({
+              title: '权限提示',
+              content: '发布商品需要获取您的地理位置，请在设置中开启位置权限',
+              confirmText: '去设置',
+              success: (modalRes) => {
+                if (modalRes.confirm) {
+                  Taro.openSetting()
+                }
+              }
+            })
+          } else {
+            // 可能是用户取消了选择，或者其他错误
+            Taro.showToast({ title: '未选择位置', icon: 'none' })
+          }
+        }
+      })
     })
   }
 
@@ -124,14 +148,14 @@ export default function Publish() {
 
   if (loadingData) {
     return (
-      <View className="publish-page">
+      <View className="publish-page tab-bar-page">
         <Text className="loading-tip">加载中...</Text>
       </View>
     )
   }
 
   return (
-    <View className="publish-page">
+    <View className="publish-page tab-bar-page">
       <View className="form">
         <View className="row">
           <Text className="label">图片</Text>
@@ -141,7 +165,8 @@ export default function Publish() {
             ))}
             {images.length < 5 && (
               <View className="add-img" onClick={chooseImage}>
-                <Text>+</Text>
+                <View className="add-icon">+</View>
+                <Text className="add-text">添加</Text>
               </View>
             )}
           </View>
@@ -183,14 +208,17 @@ export default function Publish() {
           <Text className="label">描述</Text>
           <Textarea
             className="textarea"
-            placeholder="选填"
+            placeholder="选填，补充商品成色、交易方式等"
             value={desc}
             onInput={(e) => setDesc(e.detail.value)}
           />
         </View>
         <View className="row">
           <Text className="label">位置</Text>
-          <Text className="location-btn" onClick={chooseLocation}>
+          <Text
+            className={`location-btn ${!location ? 'placeholder' : ''}`}
+            onClick={chooseLocation}
+          >
             {location ? location.name : '点击选择位置'}
           </Text>
         </View>
