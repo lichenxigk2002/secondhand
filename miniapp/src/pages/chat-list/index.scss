@@ -26,10 +26,15 @@
   .list {
     height: 100vh;
   }
+
+  .list-inner {
+    min-height: 100%;
+    padding: 24rpx;
+  }
   
   .list-content {
     background: #fff;
-    margin: 24rpx;
+    margin: 0;
     border-radius: 24rpx;
     overflow: hidden;
     box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.02);

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify, current_app
 from app import db
 from app.models import Conversation, Message, User
 from .user import get_current_user
@@ -28,16 +28,20 @@ def _conv_to_dict(c, current_user_id):
 @message_bp.route('/unread-count', methods=['GET'])
 def unread_count():
     """当前用户未读消息总数（用于角标）AR-003"""
-    user = get_current_user()
-    if not user:
-        return {'count': 0}
-    convs = Conversation.query.filter(
-        (Conversation.user1_id == user.id) | (Conversation.user2_id == user.id)
-    ).all()
-    total = 0
-    for c in convs:
-        total += c.user1_unread if user.id == c.user1_id else c.user2_unread
-    return {'count': total}
+    try:
+        user = get_current_user()
+        if not user:
+            return {'count': 0}
+        convs = Conversation.query.filter(
+            (Conversation.user1_id == user.id) | (Conversation.user2_id == user.id)
+        ).all()
+        total = 0
+        for c in convs:
+            total += c.user1_unread if user.id == c.user1_id else c.user2_unread
+        return {'count': total}
+    except Exception as e:
+        current_app.logger.exception('unread_count error')
+        return jsonify(message=f'服务器错误: {str(e)}'), 500
 
 
 @message_bp.route('/conversations', methods=['GET'])

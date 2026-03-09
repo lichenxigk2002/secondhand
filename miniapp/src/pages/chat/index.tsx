@@ -6,7 +6,7 @@ import './index.scss'
 
 const WS_BASE =
   process.env.TARO_APP_WS ||
-  (process.env.TARO_APP_API || 'http://localhost:5001')
+  (process.env.TARO_APP_API || 'http://192.168.0.103:5000')
     .replace(/^http:/i, 'ws:')
     .replace(/^https:/i, 'wss:')
 

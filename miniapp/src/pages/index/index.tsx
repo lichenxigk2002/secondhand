@@ -1,19 +1,19 @@
 import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, Map, Input } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { Ionicons } from 'taro-icons'
+import { IconFont } from '@/components/iconfont'
 import { goodsApi, Goods } from '@/services/api'
 import GoodCard from '@/components/GoodCard'
 import { setTabBarSelected } from '@/utils/tabbar-state'
 import './index.scss'
 
 const CATEGORIES = [
-  { name: '全部', icon: 'ios-apps', color: '#FFD100' },
-  { name: '数码', icon: 'ios-phone-portrait', color: '#36cfc9' },
-  { name: '书籍', icon: 'ios-book', color: '#597ef7' },
-  { name: '生活', icon: 'ios-basket', color: '#73d13d' }, // 生活用品 -> 生活 (shorter)
-  { name: '服饰', icon: 'ios-shirt', color: '#ff7a45' },
-  { name: '其他', icon: 'ios-grid', color: '#9254de' }
+  { name: '全部', icon: 'apps', color: '#FFD100' },
+  { name: '数码', icon: 'phone', color: '#36cfc9' },
+  { name: '书籍', icon: 'book', color: '#597ef7' },
+  { name: '生活', icon: 'basket', color: '#73d13d' },
+  { name: '服饰', icon: 'shirt', color: '#ff7a45' },
+  { name: '其他', icon: 'grid', color: '#9254de' }
 ]
 const CAMPUSES = ['全部', '南校区', '北校区', '东区', '西区', '其他']
 
@@ -62,8 +62,12 @@ export default function Index() {
       setList(res?.list || [])
     } catch (e) {
       console.error(e)
-      const res = await goodsApi.list({ page: 1, pageSize: 20 })
-      setList(res?.list || [])
+      try {
+        const res = await goodsApi.list({ page: 1, pageSize: 20 }, { silent: true })
+        setList(res?.list || [])
+      } catch {
+        setList([])
+      }
     } finally {
       setLoading(false)
     }
@@ -83,7 +87,7 @@ export default function Index() {
       
       <View className="search-section">
         <View className="search-bar">
-          <Ionicons name="ios-search" size={20} color="#999" className="search-icon" />
+          <IconFont name="search" size={20} color="#999" className="search-icon" />
           <Input
             className="search-input"
             placeholder="搜索好物..."
@@ -104,7 +108,7 @@ export default function Index() {
             onClick={() => setCategory(c.name)}
           >
             <View className="icon-box" style={{ background: category === c.name ? '#FFD100' : '#f5f6f8' }}>
-              <Ionicons 
+              <IconFont 
                 name={c.icon} 
                 size={28} 
                 color={category === c.name ? '#222' : c.color} 
@@ -133,13 +137,13 @@ export default function Index() {
             className={`toggle-item ${viewMode === 'list' ? 'active' : ''}`}
             onClick={() => setViewMode('list')}
           >
-            <Ionicons name="ios-list" size={20} color={viewMode === 'list' ? '#222' : '#999'} />
+            <IconFont name="list" size={20} color={viewMode === 'list' ? '#222' : '#999'} />
           </View>
           <View
             className={`toggle-item ${viewMode === 'map' ? 'active' : ''}`}
             onClick={() => setViewMode('map')}
           >
-            <Ionicons name="ios-map" size={20} color={viewMode === 'map' ? '#222' : '#999'} />
+            <IconFont name="map" size={20} color={viewMode === 'map' ? '#222' : '#999'} />
           </View>
         </View>
       </View>
@@ -157,7 +161,7 @@ export default function Index() {
             </View>
           ) : list.length === 0 ? (
             <View className="empty-box">
-              <Ionicons name="ios-folder-open" size={64} color="#ccc" />
+              <IconFont name="folder" size={64} color="#ccc" />
               <Text className="empty-text">暂无商品</Text>
               <View
                 className="empty-btn"

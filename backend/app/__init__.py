@@ -1,5 +1,6 @@
 import os
-from flask import Flask, send_from_directory
+import traceback
+from flask import Flask, send_from_directory, jsonify, request
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -18,6 +19,16 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
 
+    @app.before_request
+    def _log_request():
+        print(f"[Req] {request.method} {request.path}")
+
+    @app.errorhandler(Exception)
+    def _handle_exception(e):
+        """全局异常：任何未捕获异常都返回 500，避免进程崩溃导致 502"""
+        traceback.print_exc()
+        return jsonify(message=f'服务器错误: {str(e)}'), 500
+
     from app.routes import user_bp, goods_bp
     from app.routes.upload import upload_bp
     from app.routes.favorite import favorite_bp
@@ -35,6 +46,11 @@ def create_app():
     app.register_blueprint(evaluation_bp, url_prefix='/api/evaluation')
     app.register_blueprint(browse_bp, url_prefix='/api/browse')
     app.register_blueprint(report_bp, url_prefix='/api/report')
+
+    @app.route('/api/ping', methods=['GET'])
+    def ping():
+        """健康检查：无需鉴权，用于确认后端是否可达（排查 502）"""
+        return {'ok': True}
 
     @app.route('/uploads/<path:filename>')
     def serve_upload(filename):

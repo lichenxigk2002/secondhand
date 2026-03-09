@@ -2,7 +2,8 @@
   min-height: 100vh;
   background: #f7f8fa;
 
-  .list { height: 100vh; padding: 16rpx; }
+  .list { height: 100vh; }
+  .list-inner { padding: 16rpx; min-height: 100%; }
   .loading { display: block; text-align: center; padding: 80rpx 0; color: #999; }
 
   .empty {

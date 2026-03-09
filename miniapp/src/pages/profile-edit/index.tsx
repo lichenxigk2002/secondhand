@@ -4,12 +4,15 @@ import { useState, useEffect } from 'react'
 import { userApi } from '@/services/api'
 import './index.scss'
 
+const GET_USER_PROFILE_COOLDOWN_MS = 3000 // 微信限制：避免频繁调用 getUserProfile
+
 export default function ProfileEdit() {
   const [nickName, setNickName] = useState('')
   const [phone, setPhone] = useState('')
   const [campus, setCampus] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [getUserProfileCooling, setGetUserProfileCooling] = useState(false)
 
   useEffect(() => {
     userApi
@@ -46,6 +49,14 @@ export default function ProfileEdit() {
   }
 
   const fillFromWechat = () => {
+    if (getUserProfileCooling) {
+      Taro.showToast({ title: '请勿频繁点击', icon: 'none' })
+      return
+    }
+    setGetUserProfileCooling(true)
+    const resetCooling = () => {
+      setTimeout(() => setGetUserProfileCooling(false), GET_USER_PROFILE_COOLDOWN_MS)
+    }
     Taro.getUserProfile({
       desc: '用于展示头像与昵称',
     })
@@ -61,11 +72,12 @@ export default function ProfileEdit() {
         })
       })
       .catch(() => Taro.showToast({ title: '需要授权才能获取', icon: 'none' }))
+      .finally(resetCooling)
   }
 
   return (
     <View className="profile-edit-page">
-      <Button className="wechat-fill-btn" onClick={fillFromWechat}>
+      <Button className="wechat-fill-btn" onClick={fillFromWechat} disabled={getUserProfileCooling}>
         使用微信头像与昵称
       </Button>
       <View className="form">

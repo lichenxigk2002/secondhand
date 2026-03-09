@@ -65,6 +65,7 @@ export default function ChatList() {
   return (
     <View className="chat-list-page">
       <ScrollView scrollY className="list" onScrollToUpper={load}>
+        <View className="list-inner">
         {loading ? (
           <View className="loading-box">
             <Text className="loading-text">加载中...</Text>
@@ -110,6 +111,7 @@ export default function ChatList() {
             ))}
           </View>
         )}
+        </View>
       </ScrollView>
     </View>
   )

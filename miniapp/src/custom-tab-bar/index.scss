@@ -23,9 +23,9 @@
     padding-bottom: 8rpx;
 
     .tab-icon {
-      width: 56rpx;
-      height: 56rpx;
-      display: block;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       margin-bottom: 4rpx;
     }
 
@@ -34,33 +34,30 @@
       margin-top: 4rpx;
     }
     
-    /* 发布按钮特殊样式 */
+    /* 发布按钮：胶囊形，与搜索等黄色按钮风格统一 */
     &.publish-btn {
-      position: relative;
-      top: -24rpx; /* 向上突出一部分 */
-      overflow: visible;
-      
       .publish-icon-wrap {
-        width: 100rpx;
-        height: 100rpx;
-        background: #FFD100; /* 直接写死颜色，避免变量失效 */
-        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 8rpx 20rpx rgba(255, 209, 0, 0.4);
-        margin-bottom: 4rpx;
+        gap: 8rpx;
+        height: 64rpx;
+        padding: 0 28rpx;
+        background: var(--color-primary);
+        border-radius: 32rpx;
+        box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
 
         .publish-icon {
-          width: 50rpx;
-          height: 50rpx;
-          display: block;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
-      }
-      
-      .tab-text {
-        font-weight: 600;
-        color: #222 !important;
+
+        .publish-text {
+          font-size: 28rpx;
+          font-weight: 600;
+          color: #1a1a1a;
+        }
       }
     }
   }

@@ -1,8 +1,8 @@
-from flask import Blueprint, request, current_app
+from flask import Blueprint, request, current_app, jsonify
 import jwt
 import requests
 from app import db
-from app.models import User
+from app.models import User, Goods, Favorite, BrowseHistory
 
 user_bp = Blueprint('user', __name__)
 
@@ -67,12 +67,39 @@ def login():
         return {'message': f'登录失败: {str(e)}'}, 500
 
 
+@user_bp.route('/stats', methods=['GET'])
+def get_stats():
+    """个人中心统计：我发布的、我收藏的、浏览历史数量"""
+    try:
+        user = get_current_user()
+        if not user:
+            return {'message': '未登录'}, 401
+        from sqlalchemy import func
+        my_goods_count = Goods.query.filter_by(user_id=user.id).count()
+        favorite_count = Favorite.query.filter_by(user_id=user.id).count()
+        browse_count = db.session.query(func.count(func.distinct(BrowseHistory.goods_id))).filter(
+            BrowseHistory.user_id == user.id
+        ).scalar() or 0
+        return {
+            'myGoodsCount': my_goods_count,
+            'favoriteCount': favorite_count,
+            'browseHistoryCount': browse_count,
+        }
+    except Exception as e:
+        current_app.logger.exception('get_stats error')
+        return jsonify(message=f'服务器错误: {str(e)}'), 500
+
+
 @user_bp.route('/profile', methods=['GET'])
 def get_profile():
-    user = get_current_user()
-    if not user:
-        return {'message': '未登录'}, 401
-    return user.to_dict()
+    try:
+        user = get_current_user()
+        if not user:
+            return {'message': '未登录'}, 401
+        return user.to_dict()
+    except Exception as e:
+        current_app.logger.exception('get_profile error')
+        return jsonify(message=f'服务器错误: {str(e)}'), 500
 
 
 @user_bp.route('/profile', methods=['PUT'])

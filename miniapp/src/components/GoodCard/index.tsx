@@ -26,20 +26,19 @@ export default function GoodCard({ goods }: Props) {
         )}
       </View>
       <View className="info">
-        <Text className="title">{goods.title}</Text>
+        <Text className="title">{String(goods?.title ?? '')}</Text>
         <View className="price-row">
           <Text className="symbol">¥</Text>
-          <Text className="price">{goods.price}</Text>
+          <Text className="price">{String(goods?.price ?? '')}</Text>
         </View>
-        
         {user && (
           <View className="user-row">
-            <Image 
-              className="avatar" 
-              src={user.avatar || 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0'} 
-              mode="aspectFill" 
+            <Image
+              className="avatar"
+              src={typeof user.avatar === 'string' ? user.avatar : 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0'}
+              mode="aspectFill"
             />
-            <Text className="name">{user.nickName}</Text>
+            <Text className="name">{String(user?.nickName ?? '')}</Text>
           </View>
         )}
       </View>

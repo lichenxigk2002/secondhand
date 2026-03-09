@@ -124,7 +124,7 @@ export default function Detail() {
   }
 
   const imgs = goods.images?.length ? goods.images : ['']
-  const hasDesc = goods.description?.trim()
+  const hasDesc = typeof goods.description === 'string' ? goods.description.trim() : ''
 
   return (
     <View className="detail-page">
@@ -137,7 +137,7 @@ export default function Detail() {
       </Swiper>
       <View className="info">
         <View className="price-row">
-          <Text className="price">¥{goods.price}</Text>
+          <Text className="price">¥{String(goods.price ?? '')}</Text>
           <Text
             className={`fav-btn ${favorited ? 'active' : ''}`}
             onClick={toggleFavorite}
@@ -145,7 +145,7 @@ export default function Detail() {
             {favorited ? '❤️' : '🤍'} 收藏
           </Text>
         </View>
-        <Text className="title">{goods.title}</Text>
+        <Text className="title">{String(goods.title ?? '')}</Text>
         {goods.viewCount != null && goods.viewCount > 0 && (
           <Text className="view-count">浏览 {goods.viewCount}</Text>
         )}
@@ -166,7 +166,7 @@ export default function Detail() {
           mode="aspectFill"
         />
         <View className="user-info">
-          <Text className="user-name">{goods.user?.nickName || '用户'}</Text>
+          <Text className="user-name">{String(goods.user?.nickName ?? '用户')}</Text>
           {goods.user?.creditScore != null && (
             <Text className="credit">信用分 {goods.user.creditScore}</Text>
           )}
@@ -205,8 +205,8 @@ export default function Detail() {
                   mode="aspectFill"
                 />
                 <View className="comment-body">
-                  <Text className="comment-user">{c.user?.nickName || '用户'}</Text>
-                  <Text className="comment-content">{c.content}</Text>
+                  <Text className="comment-user">{String(c.user?.nickName ?? '用户')}</Text>
+                  <Text className="comment-content">{String(c.content ?? '')}</Text>
                   <Text className="comment-time">{formatCommentTime(c.createTime)}</Text>
                 </View>
               </View>

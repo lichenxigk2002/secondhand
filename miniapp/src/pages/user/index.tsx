@@ -1,23 +1,35 @@
 import { useState, useEffect } from 'react'
 import { View, Text, Image, Button } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { Ionicons } from 'taro-icons'
+import { IconFont } from '@/components/iconfont'
 import { userApi, messageApi } from '@/services/api'
-import type { User } from '@/services/api'
+import type { User, UserStats } from '@/services/api'
 import { setTabBarSelected } from '@/utils/tabbar-state'
 import './index.scss'
 
+const defaultStats: UserStats = { myGoodsCount: 0, favoriteCount: 0, browseHistoryCount: 0 }
+
 export default function UserPage() {
   const [user, setUser] = useState<User | null>(null)
+  const [stats, setStats] = useState<UserStats>(defaultStats)
 
   useEffect(() => {
     loadUser()
     updateMessageBadge()
   }, [])
 
+  useEffect(() => {
+    if (Taro.getStorageSync('token')) loadStats()
+  }, [user])
+
+  const loadStats = () => {
+    userApi.getStats({ silent: true }).then(setStats).catch(() => setStats(defaultStats))
+  }
+
   Taro.useDidShow(() => {
     setTabBarSelected(2)
     updateMessageBadge()
+    if (Taro.getStorageSync('token')) loadStats()
   })
 
   const updateMessageBadge = () => {
@@ -26,7 +38,7 @@ export default function UserPage() {
       return
     }
     messageApi
-      .getUnreadCount()
+      .getUnreadCount({ silent: true })
       .then((res) => {
         const n = res?.count ?? 0
         if (n > 0) {
@@ -41,7 +53,7 @@ export default function UserPage() {
   const loadUser = () => {
     const token = Taro.getStorageSync('token')
     if (!token) return
-    userApi.getProfile().then(setUser).catch(() => {})
+    userApi.getProfile({ silent: true }).then(setUser).catch(() => {})
   }
 
   const login = () => {
@@ -96,15 +108,15 @@ export default function UserPage() {
         
         <View className="stats-row">
           <View className="stat-item" onClick={() => goTo('/pages/my-goods/index')}>
-            <Text className="num">--</Text>
+            <Text className="num">{stats.myGoodsCount}</Text>
             <Text className="label">我发布的</Text>
           </View>
           <View className="stat-item" onClick={() => goTo('/pages/favorites/index')}>
-            <Text className="num">--</Text>
+            <Text className="num">{stats.favoriteCount}</Text>
             <Text className="label">我收藏的</Text>
           </View>
           <View className="stat-item" onClick={() => goTo('/pages/browse-history/index')}>
-            <Text className="num">--</Text>
+            <Text className="num">{stats.browseHistoryCount}</Text>
             <Text className="label">浏览历史</Text>
           </View>
         </View>
@@ -115,25 +127,25 @@ export default function UserPage() {
         <View className="menu-grid">
           <View className="grid-item" onClick={() => goTo('/pages/orders/index')}>
             <View className="icon-box" style={{ background: '#fff7e6' }}>
-              <Ionicons name="ios-list-box" size={26} color="#fa8c16" />
+              <IconFont name="order" size={26} color="#fa8c16" />
             </View>
             <Text>我的订单</Text>
           </View>
           <View className="grid-item" onClick={() => goTo('/pages/evaluations-received/index')}>
-             <View className="icon-box" style={{ background: '#feffe6' }}>
-              <Ionicons name="ios-star" size={26} color="#fadb14" />
+            <View className="icon-box" style={{ background: '#feffe6' }}>
+              <IconFont name="star" size={26} color="#fadb14" />
             </View>
             <Text>我的评价</Text>
           </View>
-           <View className="grid-item" onClick={() => goTo('/pages/orders/index?type=sold')}>
-             <View className="icon-box" style={{ background: '#e6f7ff' }}>
-              <Ionicons name="ios-card" size={26} color="#1890ff" />
+          <View className="grid-item" onClick={() => goTo('/pages/orders/index?type=sold')}>
+            <View className="icon-box" style={{ background: '#e6f7ff' }}>
+              <IconFont name="receipt" size={26} color="#1890ff" />
             </View>
             <Text>我卖出的</Text>
           </View>
-           <View className="grid-item" onClick={() => goTo('/pages/orders/index?type=bought')}>
-             <View className="icon-box" style={{ background: '#f9f0ff' }}>
-              <Ionicons name="ios-basket" size={26} color="#722ed1" />
+          <View className="grid-item" onClick={() => goTo('/pages/orders/index?type=bought')}>
+            <View className="icon-box" style={{ background: '#f9f0ff' }}>
+              <IconFont name="cart" size={26} color="#722ed1" />
             </View>
             <Text>我买到的</Text>
           </View>
@@ -143,24 +155,30 @@ export default function UserPage() {
       <View className="menu-list">
         <View className="list-item" onClick={() => goTo('/pages/chat-list/index')}>
           <View className="left">
-            <Ionicons name="ios-chatbubbles" size={22} color="#52c41a" />
+            <IconFont name="chat" size={22} color="#52c41a" />
             <Text className="label">消息中心</Text>
           </View>
-          <Ionicons name="ios-arrow-forward" size={18} color="#ccc" />
+          <IconFont name="arrow" size={18} color="#ccc" />
         </View>
-        <View className="list-item">
+        <View className="list-item" onClick={() => {
+          Taro.showModal({
+            title: '帮助与反馈',
+            content: '如有问题请联系管理员或稍后再试',
+            showCancel: false,
+          })
+        }}>
           <View className="left">
-            <Ionicons name="ios-help-circle" size={22} color="#faad14" />
+            <IconFont name="help" size={22} color="#faad14" />
             <Text className="label">帮助与反馈</Text>
           </View>
-          <Ionicons name="ios-arrow-forward" size={18} color="#ccc" />
+          <IconFont name="arrow" size={18} color="#ccc" />
         </View>
-        <View className="list-item">
+        <View className="list-item" onClick={() => Taro.openSetting()}>
           <View className="left">
-            <Ionicons name="ios-settings" size={22} color="#1890ff" />
+            <IconFont name="setting" size={22} color="#1890ff" />
             <Text className="label">设置</Text>
           </View>
-          <Ionicons name="ios-arrow-forward" size={18} color="#ccc" />
+          <IconFont name="arrow" size={18} color="#ccc" />
         </View>
       </View>
     </View>

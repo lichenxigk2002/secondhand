@@ -1,7 +1,7 @@
 import math
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 from app import db
-from app.models import Goods, User, Category, GoodsComment
+from app.models import Goods, User, Category, GoodsComment, Favorite, BrowseHistory, Order
 from .user import get_current_user
 
 goods_bp = Blueprint('goods', __name__)
@@ -75,6 +75,15 @@ def nearby():
 
 @goods_bp.route('', methods=['GET'])
 def list_goods():
+    try:
+        return _list_goods_impl()
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify(message=f'服务器错误: {str(e)}'), 500
+
+
+def _list_goods_impl():
     lat = request.args.get('lat', type=float)
     lng = request.args.get('lng', type=float)
     radius = request.args.get('radius', type=float)
@@ -101,7 +110,15 @@ def list_goods():
 
     items = pagination.items
     if lat is not None and lng is not None:
-        items_with_dist = [(g, haversine_distance(lat, lng, g.lat, g.lng)) for g in items]
+        items_with_dist = []
+        for g in items:
+            if g.lat is None or g.lng is None:
+                continue
+            try:
+                d = haversine_distance(lat, lng, g.lat, g.lng)
+                items_with_dist.append((g, d))
+            except (TypeError, ValueError):
+                continue
         if radius:
             items_with_dist = [(g, d) for g, d in items_with_dist if d <= radius]
         items_with_dist.sort(key=lambda x: x[1])
@@ -259,6 +276,12 @@ def delete_goods(gid):
         return {'message': '商品不存在'}, 404
     if g.user_id != user.id:
         return {'message': '无权限'}, 403
+    if Order.query.filter_by(goods_id=gid).first():
+        return {'message': '该商品已有订单，无法删除'}, 400
+    # 先删除关联数据，避免 goods_id 被置为 NULL 触发 IntegrityError
+    GoodsComment.query.filter_by(goods_id=gid).delete()
+    Favorite.query.filter_by(goods_id=gid).delete()
+    BrowseHistory.query.filter_by(goods_id=gid).delete()
     db.session.delete(g)
     db.session.commit()
     return {}

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import time
 import random
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify, current_app
 from app import db
 from app.models import Order, Goods, User
 from .user import get_current_user
@@ -16,43 +16,47 @@ def _order_no():
 @order_bp.route('/mine', methods=['GET'])
 def my_orders():
     """我的订单"""
-    user = get_current_user()
-    if not user:
-        return {'message': '未登录'}, 401
-    role = request.args.get('role')  # buyer / seller
-    status = request.args.get('status', type=int)
-    q = db.session.query(Order).filter(
-        (Order.buyer_id == user.id) | (Order.seller_id == user.id)
-    )
-    if role == 'buyer':
-        q = q.filter(Order.buyer_id == user.id)
-    elif role == 'seller':
-        q = q.filter(Order.seller_id == user.id)
-    if status is not None:
-        q = q.filter(Order.status == status)
-    orders = q.order_by(Order.create_time.desc()).limit(50).all()
-    result = []
-    for o in orders:
-        d = {
-            'id': o.id,
-            'orderNo': o.order_no,
-            'buyerId': o.buyer_id,
-            'sellerId': o.seller_id,
-            'goodsId': o.goods_id,
-            'amount': float(o.amount),
-            'status': o.status,
-            'createTime': o.create_time.isoformat() if o.create_time else '',
-            'completeTime': o.complete_time.isoformat() if o.complete_time else '',
-        }
-        if o.goods:
-            d['goods'] = o.goods.to_dict()
-        if o.buyer:
-            d['buyer'] = o.buyer.to_dict()
-        if o.seller:
-            d['seller'] = o.seller.to_dict()
-        d['isBuyer'] = o.buyer_id == user.id
-        result.append(d)
-    return {'list': result}
+    try:
+        user = get_current_user()
+        if not user:
+            return {'message': '未登录'}, 401
+        role = request.args.get('role')  # buyer / seller
+        status = request.args.get('status', type=int)
+        q = db.session.query(Order).filter(
+            (Order.buyer_id == user.id) | (Order.seller_id == user.id)
+        )
+        if role == 'buyer':
+            q = q.filter(Order.buyer_id == user.id)
+        elif role == 'seller':
+            q = q.filter(Order.seller_id == user.id)
+        if status is not None:
+            q = q.filter(Order.status == status)
+        orders = q.order_by(Order.create_time.desc()).limit(50).all()
+        result = []
+        for o in orders:
+            d = {
+                'id': o.id,
+                'orderNo': o.order_no,
+                'buyerId': o.buyer_id,
+                'sellerId': o.seller_id,
+                'goodsId': o.goods_id,
+                'amount': float(o.amount),
+                'status': o.status,
+                'createTime': o.create_time.isoformat() if o.create_time else '',
+                'completeTime': o.complete_time.isoformat() if o.complete_time else '',
+            }
+            if o.goods:
+                d['goods'] = o.goods.to_dict()
+            if o.buyer:
+                d['buyer'] = o.buyer.to_dict()
+            if o.seller:
+                d['seller'] = o.seller.to_dict()
+            d['isBuyer'] = o.buyer_id == user.id
+            result.append(d)
+        return {'list': result}
+    except Exception as e:
+        current_app.logger.exception('my_orders error')
+        return jsonify(message=f'服务器错误: {str(e)}'), 500
 
 
 @order_bp.route('/create', methods=['POST'])

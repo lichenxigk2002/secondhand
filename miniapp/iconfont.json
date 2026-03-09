@@ -1,0 +1,9 @@
+{
+  "symbol_url": "",
+  "save_dir": "./src/components/iconfont-generated",
+  "use_typescript": true,
+  "platforms": ["weapp"],
+  "use_rpx": true,
+  "trim_icon_prefix": "icon-",
+  "default_icon_size": 24
+}

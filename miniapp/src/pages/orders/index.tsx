@@ -26,7 +26,7 @@ export default function Orders() {
     }
     setLoading(true)
     orderApi
-      .mine()
+      .mine(undefined, { silent: true })
       .then((res) => setList(res.list || []))
       .catch(() => setList([]))
       .finally(() => setLoading(false))
@@ -64,6 +64,7 @@ export default function Orders() {
   return (
     <View className="orders-page">
       <ScrollView scrollY className="list" onScrollToUpper={load}>
+        <View className="list-inner">
         {loading ? (
           <Text className="loading">加载中...</Text>
         ) : list.length === 0 ? (
@@ -113,6 +114,7 @@ export default function Orders() {
             </View>
           ))
         )}
+        </View>
       </ScrollView>
     </View>
   )

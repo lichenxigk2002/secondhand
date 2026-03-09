@@ -37,9 +37,16 @@ export interface GoodsListParams {
   pageSize?: number
 }
 
+export interface UserStats {
+  myGoodsCount: number
+  favoriteCount: number
+  browseHistoryCount: number
+}
+
 export const userApi = {
   login: (code: string) => api.post<{ token: string; user: User }>('/api/user/login', { code }),
-  getProfile: () => api.get<User>('/api/user/profile'),
+  getProfile: (opts?: { silent?: boolean }) => api.get<User>('/api/user/profile', undefined, opts),
+  getStats: (opts?: { silent?: boolean }) => api.get<UserStats>('/api/user/stats', undefined, opts),
   updateProfile: (data: Partial<User>) => api.put<User>('/api/user/profile', data),
 }
 
@@ -81,8 +88,8 @@ export interface OrderItem {
 }
 
 export const orderApi = {
-  mine: (params?: { role?: string; status?: number }) =>
-    api.get<{ list: OrderItem[] }>('/api/order/mine', params),
+  mine: (params?: { role?: string; status?: number }, opts?: { silent?: boolean }) =>
+    api.get<{ list: OrderItem[] }>('/api/order/mine', params, opts),
   create: (goodsId: number) =>
     api.post<{ order: OrderItem }>('/api/order/create', { goodsId }),
   complete: (orderId: number) =>
@@ -97,8 +104,8 @@ export const evaluationApi = {
 }
 
 export const messageApi = {
-  getUnreadCount: () =>
-    api.get<{ count: number }>('/api/message/unread-count'),
+  getUnreadCount: (opts?: { silent?: boolean }) =>
+    api.get<{ count: number }>('/api/message/unread-count', undefined, opts),
   listConversations: () =>
     api.get<{ list: Conversation[] }>('/api/message/conversations'),
   getOrCreateConversation: (targetId: number, goodsId?: number) =>
@@ -155,7 +162,8 @@ export const goodsCommentApi = {
 }
 
 export const goodsApi = {
-  list: (params?: GoodsListParams) => api.get<{ list: Goods[]; total: number }>('/api/goods', params),
+  list: (params?: GoodsListParams, opts?: { silent?: boolean }) =>
+    api.get<{ list: Goods[]; total: number }>('/api/goods', params, opts),
   nearby: (lat: number, lng: number, radius = 5) =>
     api.get<{ list: Goods[] }>('/api/goods/nearby', { lat, lng, radius }),
   mine: (params?: { page?: number; pageSize?: number; status?: number }) =>

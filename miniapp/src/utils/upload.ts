@@ -1,6 +1,6 @@
 import Taro from '@tarojs/taro'
 
-const BASE_URL = process.env.TARO_APP_API || 'http://localhost:5000'
+const BASE_URL = process.env.TARO_APP_API || 'http://192.168.0.103:5000'
 
 export async function uploadImage(filePath: string): Promise<string> {
   const token = Taro.getStorageSync('token') || ''
