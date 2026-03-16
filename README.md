@@ -5,7 +5,7 @@
 ```
 ├── miniapp/          # Taro + React + TypeScript 小程序前端
 ├── backend/          # Python Flask 后端
-├── docs/             # 需求文档、技术架构
+├── docs/             # 文档总目录（按需求/技术/指导/毕设分层）
 └── README.md
 ```
 
@@ -69,7 +69,7 @@ npm run dev:weapp
 - 邻近检索、地图展示
 - 商品详情、联系卖家（聊天占位）
 
-详见 `docs/01-需求文档.md`、`docs/02-技术架构设计.md`。
+详见 `docs/README.md`、`docs/需求文档/01-需求文档.md`、`docs/技术文档/02-技术架构设计.md`。
 
 ---
 
