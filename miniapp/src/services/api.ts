@@ -154,6 +154,48 @@ export interface GoodsCommentItem {
   user?: User
 }
 
+export interface AiGoodsDraftParams {
+  title?: string
+  description?: string
+  category?: string
+  imageCount?: number
+  locationName?: string
+  imageUrls?: string[]
+}
+
+export interface AiGoodsDraft {
+  title: string
+  description: string
+  category: string
+  price: string
+  tips: string[]
+  riskWarnings: string[]
+  riskLevel: 'low' | 'medium' | 'high'
+  provider: string
+}
+
+export interface AiGoodsPrecheckResult {
+  canPublish: boolean
+  riskLevel: 'low' | 'medium' | 'high'
+  warnings: string[]
+  suggestions: string[]
+  missingFields: string[]
+  provider: string
+}
+
+export const aiApi = {
+  generateGoodsDraft: (data: AiGoodsDraftParams) =>
+    api.post<{ draft: AiGoodsDraft }>('/api/ai/goods-draft', data),
+  precheckGoodsPublish: (data: {
+    title: string
+    description: string
+    category: string
+    price: string
+    imageCount: number
+    locationName: string
+  }) => api.post<{ result: AiGoodsPrecheckResult }>('/api/ai/goods-precheck', data),
+}
+
 export const goodsCommentApi = {
   list: (goodsId: number, page = 1) =>
     api.get<{ list: GoodsCommentItem[]; total: number }>(`/api/goods/${goodsId}/comments`, { page, pageSize: 20 }),

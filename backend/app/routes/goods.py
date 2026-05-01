@@ -1,10 +1,32 @@
 import math
 from flask import Blueprint, request, jsonify
+from sqlalchemy import or_
 from app import db
 from app.models import Goods, User, Category, GoodsComment, Favorite, BrowseHistory, Order
 from .user import get_current_user
 
 goods_bp = Blueprint('goods', __name__)
+
+AREA_KEYWORDS = {
+    '宿舍区': ['宿舍区', '宿舍', '宿舍楼', '寝室', '公寓', '楼栋', '学生公寓', '研究生公寓', '1栋', '2栋', '3栋', '4栋', '5栋'],
+    '教学区': ['教学区', '教学楼', '教学', '教室', '实验楼', '实验室', '学院楼', '创客空间', 'A座', 'B座'],
+    '图书馆': ['图书馆', '阅览室', '自习室', '书库'],
+    '食堂周边': ['食堂周边', '食堂', '餐厅', '饭堂'],
+    '运动场': ['运动场', '操场', '体育场', '体育馆', '篮球场', '足球场', '看台'],
+    '快递点': ['快递点', '快递', '驿站', '菜鸟', '取件点'],
+}
+
+
+def area_keywords(area):
+    area = (area or '').strip()
+    if not area or area == '全部':
+        return []
+    words = AREA_KEYWORDS.get(area, [area])
+    result = []
+    for word in [area, *words]:
+        if word and word not in result:
+            result.append(word)
+    return result
 
 
 def haversine_distance(lat1, lng1, lat2, lng2):
@@ -89,7 +111,7 @@ def _list_goods_impl():
     radius = request.args.get('radius', type=float)
     category = request.args.get('category')
     keyword = request.args.get('keyword')
-    campus = request.args.get('campus')  # 校区/楼栋筛选 LR-005
+    campus = request.args.get('campus')  # 校内区域/楼栋筛选 LR-005
     page = request.args.get('page', 1, type=int)
     page_size = request.args.get('pageSize', 20, type=int)
 
@@ -103,8 +125,13 @@ def _list_goods_impl():
                 q = q.filter(Goods.category_id == c.id)
     if keyword:
         q = q.filter(Goods.title.contains(keyword))
-    if campus and campus.strip() and campus != '全部':
-        q = q.join(User, Goods.user_id == User.id).filter(User.campus.contains(campus.strip()))
+    area_words = area_keywords(campus)
+    if area_words:
+        filters = []
+        for word in area_words:
+            filters.append(User.campus.contains(word))
+            filters.append(Goods.address.contains(word))
+        q = q.join(User, Goods.user_id == User.id).filter(or_(*filters))
     q = q.order_by(Goods.create_time.desc())
     pagination = q.paginate(page=page, per_page=page_size)
 

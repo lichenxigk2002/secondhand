@@ -35,6 +35,10 @@ export default function Evaluate() {
 
   return (
     <View className="evaluate-page">
+      <View className="hero-card">
+        <Text className="hero-title">交易评价</Text>
+        <Text className="hero-subtitle">客观评价交易体验，有助于完善校园内的信用体系。</Text>
+      </View>
       <View className="form">
         <View className="row">
           <Text className="label">评分</Text>
@@ -55,9 +59,11 @@ export default function Evaluate() {
           <Textarea
             className="textarea"
             placeholder="选填，分享你的交易体验"
+            maxlength={200}
             value={comment}
             onInput={(e) => setComment(e.detail.value)}
           />
+          <Text className="field-meta">{comment.trim().length}/200</Text>
         </View>
       </View>
       <Button

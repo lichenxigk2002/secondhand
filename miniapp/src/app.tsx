@@ -2,6 +2,7 @@ import React from 'react'
 import { View, Text } from '@tarojs/components'
 import { useLaunch } from '@tarojs/taro'
 import 'taro-icons/scss/Ionicons.scss'
+import 'taro-icons/scss/MaterialCommunityIcons.scss'
 import './app.scss'
 
 class ErrorBoundary extends React.Component<

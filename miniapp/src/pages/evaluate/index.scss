@@ -1,16 +1,42 @@
 .evaluate-page {
   min-height: 100vh;
   padding: 24rpx;
+  padding-bottom: calc(140rpx + env(safe-area-inset-bottom));
   background: #f7f8fa;
+
+  .hero-card {
+    background: linear-gradient(135deg, #fff7d6, #fff 70%);
+    border-radius: 24rpx;
+    padding: 28rpx 32rpx;
+    margin-bottom: 20rpx;
+    box-shadow: 0 10rpx 30rpx rgba(255, 209, 0, 0.12);
+
+    .hero-title {
+      display: block;
+      font-size: 36rpx;
+      color: #222;
+      font-weight: 700;
+      margin-bottom: 10rpx;
+    }
+
+    .hero-subtitle {
+      display: block;
+      font-size: 24rpx;
+      color: #666;
+      line-height: 1.7;
+    }
+  }
 
   .form {
     background: #fff;
-    border-radius: 16rpx;
-    padding: 24rpx;
+    border-radius: 24rpx;
+    padding: 24rpx 28rpx;
+    box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.04);
 
     .row {
       padding: 24rpx 0;
       .label { font-size: 28rpx; color: #333; margin-bottom: 16rpx; display: block; }
+      .field-meta { display: block; margin-top: 12rpx; text-align: right; font-size: 22rpx; color: #999; }
     }
 
     .stars {
@@ -36,8 +62,14 @@
 
   .submit {
     margin-top: 48rpx;
-    background: #07c160;
-    color: #fff;
+    background: var(--color-primary);
+    color: #222;
     border-radius: 48rpx;
+    border: none;
+    font-weight: 600;
+
+    &::after {
+      border: none;
+    }
   }
 }

@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { View, Text, Input, Textarea, Button, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { goodsApi } from '@/services/api'
+import { aiApi, goodsApi, AiGoodsDraft, AiGoodsPrecheckResult } from '@/services/api'
 import { uploadImages } from '@/utils/upload'
 import { setTabBarSelected } from '@/utils/tabbar-state'
 import './index.scss'
 
 const CATEGORIES = ['数码', '书籍', '生活用品', '服饰', '其他']
+const PUBLISH_DRAFT_KEY = 'publish_draft_v1'
 
 export default function Publish() {
   const [editId, setEditId] = useState<number | null>(null)
@@ -18,6 +19,14 @@ export default function Publish() {
   const [location, setLocation] = useState<{ lat: number; lng: number; name: string } | null>(null)
   const [loading, setLoading] = useState(false)
   const [loadingData, setLoadingData] = useState(false)
+  const [savingDraft, setSavingDraft] = useState(false)
+  const [draftReady, setDraftReady] = useState(false)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiDraft, setAiDraft] = useState<AiGoodsDraft | null>(null)
+  const [aiTips, setAiTips] = useState<string[]>([])
+  const [aiWarnings, setAiWarnings] = useState<string[]>([])
+  const [aiRiskLevel, setAiRiskLevel] = useState<'low' | 'medium' | 'high' | ''>('')
+  const [precheckResult, setPrecheckResult] = useState<AiGoodsPrecheckResult | null>(null)
 
   Taro.useDidShow(() => setTabBarSelected(1))
 
@@ -41,9 +50,28 @@ export default function Publish() {
         const c = CATEGORIES.find((x) => x === (g as any).category)
         if (c) setCategory(c)
       }).catch(() => Taro.showToast({ title: '加载失败', icon: 'none' }))
-      .finally(() => setLoadingData(false))
+      .finally(() => {
+        setLoadingData(false)
+        setDraftReady(true)
+      })
+      return
     }
+    const draft = Taro.getStorageSync(PUBLISH_DRAFT_KEY)
+    if (draft) {
+      setTitle(draft.title || '')
+      setPrice(draft.price || '')
+      setCategory(draft.category || '')
+      setDesc(draft.desc || '')
+      setImages(draft.images || [])
+      setLocation(draft.location || null)
+    }
+    setDraftReady(true)
   }, [])
+
+  useEffect(() => {
+    if (!draftReady || editId) return
+    Taro.setStorageSync(PUBLISH_DRAFT_KEY, { title, price, category, desc, images, location })
+  }, [draftReady, editId, title, price, category, desc, images, location])
 
   const chooseImage = () => {
     Taro.chooseMedia({
@@ -54,6 +82,10 @@ export default function Publish() {
       const temps = res.tempFiles.map((f) => f.tempFilePath)
       setImages((prev) => [...prev, ...temps].slice(0, 5))
     })
+  }
+
+  const removeImage = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index))
   }
 
   const chooseLocation = () => {
@@ -88,6 +120,106 @@ export default function Publish() {
     })
   }
 
+  const generateByAi = async () => {
+    const trimmedTitle = title.trim()
+    const trimmedDesc = desc.trim()
+    if (!trimmedTitle && !trimmedDesc && images.length === 0) {
+      Taro.showToast({ title: '先填一点标题、描述或图片', icon: 'none' })
+      return
+    }
+
+    setAiLoading(true)
+    try {
+      let imageUrls = images.filter((item) => item.startsWith('http'))
+      const localImages = images.filter((item) => !item.startsWith('http'))
+      if (localImages.length > 0) {
+        if (!Taro.getStorageSync('token')) {
+          Taro.showToast({ title: '登录后可启用图片识别，先按文字生成', icon: 'none' })
+        } else {
+          Taro.showLoading({ title: '上传图片中...' })
+          const uploaded = await uploadImages(localImages)
+          Taro.hideLoading()
+          imageUrls = [...imageUrls, ...uploaded]
+        }
+      }
+
+      const res = await aiApi.generateGoodsDraft({
+        title: trimmedTitle,
+        description: trimmedDesc,
+        category,
+        imageCount: images.length,
+        locationName: location?.name || '',
+        imageUrls,
+      })
+      const draft = res.draft
+      setAiDraft(draft)
+      setAiTips(draft.tips || [])
+      setAiWarnings(draft.riskWarnings || [])
+      setAiRiskLevel(draft.riskLevel || 'low')
+      Taro.showToast({ title: '已生成建议', icon: 'none' })
+    } catch (e) {
+      console.error(e)
+      Taro.hideLoading()
+    } finally {
+      setAiLoading(false)
+    }
+  }
+
+  const applyAiField = (field: 'title' | 'description' | 'category' | 'price') => {
+    if (!aiDraft) return
+    if (field === 'title' && aiDraft.title) setTitle(aiDraft.title)
+    if (field === 'description' && aiDraft.description) setDesc(aiDraft.description)
+    if (field === 'category' && aiDraft.category) setCategory(aiDraft.category)
+    if (field === 'price' && aiDraft.price) setPrice(aiDraft.price)
+    Taro.showToast({ title: '已应用', icon: 'none' })
+  }
+
+  const applyAiAll = () => {
+    if (!aiDraft) return
+    if (aiDraft.title) setTitle(aiDraft.title)
+    if (aiDraft.description) setDesc(aiDraft.description)
+    if (aiDraft.category) setCategory(aiDraft.category)
+    if (aiDraft.price) setPrice(aiDraft.price)
+    Taro.showToast({ title: '已应用全部建议', icon: 'none' })
+  }
+
+  const runPrecheck = async (): Promise<AiGoodsPrecheckResult | null> => {
+    try {
+      const res = await aiApi.precheckGoodsPublish({
+        title: title.trim(),
+        description: desc.trim(),
+        category,
+        price,
+        imageCount: images.length,
+        locationName: location?.name || '',
+      })
+      setPrecheckResult(res.result)
+      return res.result
+    } catch (e) {
+      console.error(e)
+      return null
+    }
+  }
+
+  const confirmByPrecheck = async (): Promise<boolean> => {
+    const result = await runPrecheck()
+    if (!result) return true
+    if (result.riskLevel === 'low' && result.canPublish) return true
+
+    const lines = [
+      result.riskLevel === 'high' ? '检测到高风险发布项。' : '检测到需要确认的发布项。',
+      ...result.warnings.slice(0, 3).map((item, index) => `${index + 1}. ${item}`),
+      ...result.missingFields.slice(0, 2).map((item) => `待补充：${item}`),
+    ]
+    const modal = await Taro.showModal({
+      title: result.canPublish ? '发布前确认' : '建议先补充信息',
+      content: lines.join('\n'),
+      confirmText: result.canPublish ? '继续发布' : '仍然发布',
+      cancelText: '返回修改',
+    })
+    return !!modal.confirm
+  }
+
   const submit = async () => {
     if (!Taro.getStorageSync('token')) {
       Taro.showToast({ title: '请先登录', icon: 'none' })
@@ -98,8 +230,16 @@ export default function Publish() {
       Taro.showToast({ title: '请输入标题', icon: 'none' })
       return
     }
+    if (title.trim().length < 4) {
+      Taro.showToast({ title: '标题至少 4 个字', icon: 'none' })
+      return
+    }
     if (!price || isNaN(Number(price))) {
       Taro.showToast({ title: '请输入有效价格', icon: 'none' })
+      return
+    }
+    if (Number(price) <= 0) {
+      Taro.showToast({ title: '价格需大于 0', icon: 'none' })
       return
     }
     if (!category) {
@@ -112,6 +252,14 @@ export default function Publish() {
     }
     if (!location) {
       Taro.showToast({ title: '请选择位置', icon: 'none' })
+      return
+    }
+    if (!desc.trim()) {
+      Taro.showToast({ title: '请补充商品描述', icon: 'none' })
+      return
+    }
+    const passed = await confirmByPrecheck()
+    if (!passed) {
       return
     }
 
@@ -138,12 +286,41 @@ export default function Publish() {
         setTimeout(() => Taro.navigateBack(), 1500)
       } else {
         await goodsApi.create({ ...payload, status: 1 })
+        Taro.removeStorageSync(PUBLISH_DRAFT_KEY)
         Taro.showToast({ title: '发布成功' })
         setTimeout(() => Taro.switchTab({ url: '/pages/index/index' }), 1500)
       }
     } catch (e) {
       setLoading(false)
     }
+  }
+
+  const saveDraft = () => {
+    if (editId) {
+      Taro.showToast({ title: '编辑状态无需草稿', icon: 'none' })
+      return
+    }
+    setSavingDraft(true)
+    Taro.setStorageSync(PUBLISH_DRAFT_KEY, { title, price, category, desc, images, location })
+    Taro.showToast({ title: '草稿已保存', icon: 'none' })
+    setTimeout(() => setSavingDraft(false), 300)
+  }
+
+  const clearDraft = () => {
+    Taro.showModal({
+      title: '清空草稿',
+      content: '确认清空当前填写内容吗？',
+      success: (res) => {
+        if (!res.confirm) return
+        setTitle('')
+        setPrice('')
+        setCategory('')
+        setDesc('')
+        setImages([])
+        setLocation(null)
+        Taro.removeStorageSync(PUBLISH_DRAFT_KEY)
+      },
+    })
   }
 
   if (loadingData) {
@@ -156,12 +333,104 @@ export default function Publish() {
 
   return (
     <View className="publish-page tab-bar-page">
+      <View className="hero-card">
+        <View className="hero-head">
+          <Text className="hero-title">{editId ? '编辑商品' : '发布物品'}</Text>
+          {!editId && (
+            <Button className="ai-mini-btn" onClick={generateByAi} loading={aiLoading}>
+              AI 填写
+            </Button>
+          )}
+        </View>
+        <Text className="hero-subtitle">图片、标题、价格、描述和交易位置都填写完整，商品更容易成交。</Text>
+      </View>
+      {(aiDraft || aiTips.length > 0 || aiWarnings.length > 0 || precheckResult) && (
+        <View className="ai-panel">
+          {aiDraft && (
+            <View className="ai-draft-card">
+              <View className="ai-draft-head">
+                <Text className="ai-draft-title">AI 建议草稿</Text>
+                <Text className="ai-apply-all" onClick={applyAiAll}>全部应用</Text>
+              </View>
+              <View className="ai-draft-section">
+                <View className="ai-draft-line">
+                  <Text className="ai-draft-label">标题</Text>
+                  <Text className="ai-draft-apply" onClick={() => applyAiField('title')}>应用</Text>
+                </View>
+                <Text className="ai-draft-value">{aiDraft.title || '暂无建议'}</Text>
+              </View>
+              <View className="ai-draft-section">
+                <View className="ai-draft-line">
+                  <Text className="ai-draft-label">价格</Text>
+                  <Text className="ai-draft-apply" onClick={() => applyAiField('price')}>应用</Text>
+                </View>
+                <Text className="ai-draft-value">¥{aiDraft.price || '--'}</Text>
+              </View>
+              <View className="ai-draft-section">
+                <View className="ai-draft-line">
+                  <Text className="ai-draft-label">分类</Text>
+                  <Text className="ai-draft-apply" onClick={() => applyAiField('category')}>应用</Text>
+                </View>
+                <Text className="ai-draft-value">{aiDraft.category || '暂无建议'}</Text>
+              </View>
+              <View className="ai-draft-section">
+                <View className="ai-draft-line">
+                  <Text className="ai-draft-label">描述</Text>
+                  <Text className="ai-draft-apply" onClick={() => applyAiField('description')}>应用</Text>
+                </View>
+                <Text className="ai-draft-value multiline">{aiDraft.description || '暂无建议'}</Text>
+              </View>
+            </View>
+          )}
+          {aiTips.length > 0 && (
+            <View className="ai-tips">
+              {aiTips.map((tip, index) => (
+                <Text key={`${tip}-${index}`} className="ai-tip">{tip}</Text>
+              ))}
+            </View>
+          )}
+          {aiWarnings.length > 0 && (
+            <View className={`ai-risk-card ${aiRiskLevel || 'low'}`}>
+              <Text className="ai-risk-title">
+                发布前检查
+                {aiRiskLevel ? ` · ${aiRiskLevel === 'high' ? '高' : aiRiskLevel === 'medium' ? '中' : '低'}风险` : ''}
+              </Text>
+              {aiWarnings.map((item, index) => (
+                <Text key={`${item}-${index}`} className="ai-risk-item">{item}</Text>
+              ))}
+            </View>
+          )}
+          {precheckResult && (
+            <View className={`ai-risk-card ${precheckResult.riskLevel}`}>
+              <Text className="ai-risk-title">
+                发布审核结果 · {precheckResult.riskLevel === 'high' ? '高风险' : precheckResult.riskLevel === 'medium' ? '中风险' : '低风险'}
+              </Text>
+              {precheckResult.warnings.length > 0 ? precheckResult.warnings.map((item, index) => (
+                <Text key={`${item}-${index}`} className="ai-risk-item">{item}</Text>
+              )) : (
+                <Text className="ai-risk-item">当前信息可正常发布。</Text>
+              )}
+              {precheckResult.suggestions.length > 0 && (
+                <View className="ai-inline-tips">
+                  {precheckResult.suggestions.map((item, index) => (
+                    <Text key={`${item}-${index}`} className="ai-tip">{item}</Text>
+                  ))}
+                </View>
+              )}
+            </View>
+          )}
+        </View>
+      )}
       <View className="form">
         <View className="row">
           <Text className="label">图片</Text>
+          <Text className="hint">最多 5 张，首图将作为封面</Text>
           <View className="imgs">
             {images.map((url, i) => (
-              <Image key={i} src={url} className="img" mode="aspectFill" />
+              <View key={i} className="img-wrap">
+                <Image src={url} className="img" mode="aspectFill" />
+                <Text className="remove-img" onClick={() => removeImage(i)}>×</Text>
+              </View>
             ))}
             {images.length < 5 && (
               <View className="add-img" onClick={chooseImage}>
@@ -173,12 +442,15 @@ export default function Publish() {
         </View>
         <View className="row">
           <Text className="label">标题</Text>
+          <Text className="hint">建议包含品牌、型号、成色等关键信息</Text>
           <Input
             className="input"
-            placeholder="请输入商品标题"
+            maxlength={30}
+            placeholder="例如：九成新 iPad 10 64G"
             value={title}
             onInput={(e) => setTitle(e.detail.value)}
           />
+          <Text className="field-meta">{title.trim().length}/30</Text>
         </View>
         <View className="row">
           <Text className="label">价格</Text>
@@ -208,13 +480,16 @@ export default function Publish() {
           <Text className="label">描述</Text>
           <Textarea
             className="textarea"
-            placeholder="选填，补充商品成色、交易方式等"
+            maxlength={300}
+            placeholder="请说明成色、购买时间、配件是否齐全、交易方式等"
             value={desc}
             onInput={(e) => setDesc(e.detail.value)}
           />
+          <Text className="field-meta">{desc.trim().length}/300</Text>
         </View>
         <View className="row">
           <Text className="label">位置</Text>
+          <Text className="hint">建议选择方便面交的校内区域或宿舍附近位置</Text>
           <Text
             className={`location-btn ${!location ? 'placeholder' : ''}`}
             onClick={chooseLocation}
@@ -223,8 +498,16 @@ export default function Publish() {
           </Text>
         </View>
       </View>
+      <View className="action-bar">
+        {!editId && (
+          <>
+            <Button className="secondary-btn" onClick={saveDraft} loading={savingDraft}>保存草稿</Button>
+            <Button className="ghost-light-btn" onClick={clearDraft}>清空</Button>
+          </>
+        )}
+      </View>
       <Button className="submit" onClick={submit} loading={loading}>
-        {editId ? '保存修改' : '发布'}
+        {editId ? '保存修改' : '确认发布'}
       </Button>
     </View>
   )

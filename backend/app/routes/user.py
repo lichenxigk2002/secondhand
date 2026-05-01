@@ -104,17 +104,25 @@ def get_profile():
 
 @user_bp.route('/profile', methods=['PUT'])
 def update_profile():
-    user = get_current_user()
-    if not user:
-        return {'message': '未登录'}, 401
-    data = request.get_json() or {}
-    if 'nickName' in data:
-        user.nick_name = data['nickName']
-    if 'avatar' in data:
-        user.avatar = data['avatar']
-    if 'phone' in data:
-        user.phone = data['phone']
-    if 'campus' in data:
-        user.campus = data['campus']
-    db.session.commit()
-    return user.to_dict()
+    try:
+        user = get_current_user()
+        if not user:
+            return {'message': '未登录'}, 401
+
+        data = request.get_json() or {}
+
+        if 'nickName' in data:
+            user.nick_name = str(data['nickName'] or '').strip()[:64]
+        if 'avatar' in data:
+            user.avatar = str(data['avatar'] or '').strip()[:512]
+        if 'phone' in data:
+            user.phone = str(data['phone'] or '').strip()[:20]
+        if 'campus' in data:
+            user.campus = str(data['campus'] or '').strip()[:64]
+
+        db.session.commit()
+        return user.to_dict()
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.exception('update_profile error')
+        return jsonify(message=f'保存资料失败: {str(e)}'), 500

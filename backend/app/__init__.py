@@ -29,7 +29,7 @@ def create_app():
         traceback.print_exc()
         return jsonify(message=f'服务器错误: {str(e)}'), 500
 
-    from app.routes import user_bp, goods_bp
+    from app.routes import user_bp, goods_bp, admin_bp, ai_bp
     from app.routes.upload import upload_bp
     from app.routes.favorite import favorite_bp
     from app.routes.message import message_bp
@@ -46,6 +46,8 @@ def create_app():
     app.register_blueprint(evaluation_bp, url_prefix='/api/evaluation')
     app.register_blueprint(browse_bp, url_prefix='/api/browse')
     app.register_blueprint(report_bp, url_prefix='/api/report')
+    app.register_blueprint(admin_bp, url_prefix='/api/admin')
+    app.register_blueprint(ai_bp, url_prefix='/api/ai')
 
     @app.route('/api/ping', methods=['GET'])
     def ping():

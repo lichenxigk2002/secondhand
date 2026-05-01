@@ -7,6 +7,7 @@ export default defineAppConfig({
     'pages/chat-list/index',
     'pages/chat/index',
     'pages/my-goods/index',
+    'pages/publish-edit/index',
     'pages/profile-edit/index',
     'pages/favorites/index',
     'pages/orders/index',
@@ -17,7 +18,7 @@ export default defineAppConfig({
   window: {
     backgroundTextStyle: 'light',
     navigationBarBackgroundColor: '#FFD100',
-    navigationBarTitleText: '校园二手',
+    navigationBarTitleText: '邻物集',
     navigationBarTextStyle: 'black',
   },
   tabBar: {

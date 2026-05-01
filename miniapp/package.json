@@ -1,8 +1,8 @@
 {
-  "name": "lbs-secondhand-miniapp",
+  "name": "linwuji-miniapp",
   "version": "1.0.0",
   "private": true,
-  "description": "基于LBS的校园二手交易微信小程序",
+  "description": "邻物集 - 校内闲置流转微信小程序",
   "scripts": {
     "build:weapp": "taro build --type weapp",
     "dev:weapp": "taro build --type weapp --watch",
@@ -21,7 +21,8 @@
     "@tarojs/taro": "3.6.31",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "taro-icons": "^0.4.0"
+    "taro-icons": "^0.4.0",
+    "tdesign-miniprogram": "^1.13.2"
   },
   "devDependencies": {
     "@babel/core": "^7.22.0",

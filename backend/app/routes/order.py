@@ -72,6 +72,8 @@ def create_order():
     g = Goods.query.get(goods_id)
     if not g:
         return {'message': '商品不存在'}, 404
+    if g.status != 1 or g.audit_status != 1:
+        return {'message': '该商品当前不可下单'}, 400
     if g.user_id == user.id:
         return {'message': '不能购买自己的商品'}, 400
     existing = Order.query.filter(
@@ -111,6 +113,13 @@ def complete_order(oid):
         return {'message': '订单状态不允许'}, 400
     o.status = 2
     o.complete_time = datetime.utcnow()
+    if o.goods:
+        o.goods.status = 2
+    Order.query.filter(
+        Order.goods_id == o.goods_id,
+        Order.id != o.id,
+        Order.status.in_([0, 1]),
+    ).update({'status': 3}, synchronize_session=False)
     db.session.commit()
     return {'order': _order_to_dict(o, user.id)}
 

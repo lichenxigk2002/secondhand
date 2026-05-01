@@ -22,6 +22,12 @@ export default function EvaluationsReceived() {
     load()
   }, [])
 
+  Taro.useDidShow(() => {
+    if (Taro.getStorageSync('token')) {
+      load()
+    }
+  })
+
   const load = () => {
     if (!Taro.getStorageSync('token')) {
       Taro.switchTab({ url: '/pages/user/index' })
@@ -53,6 +59,12 @@ export default function EvaluationsReceived() {
 
   return (
     <View className="evals-page">
+      <View className="summary-card">
+        <Text className="summary-title">收到的评价</Text>
+        <Text className="summary-subtitle">
+          查看交易反馈和信用沉淀，发现异常评价也可以直接举报。
+        </Text>
+      </View>
       <ScrollView scrollY className="list" onScrollToUpper={load}>
         {loading ? (
           <Text className="loading">加载中...</Text>

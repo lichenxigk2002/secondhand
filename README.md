@@ -1,4 +1,4 @@
-# 基于 LBS 的校园二手交易微信小程序
+# 邻物集 - 基于 LBS 的校内闲置流转微信小程序
 
 ## 项目结构
 
@@ -15,7 +15,7 @@
 
 ```bash
 cd backend
-pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
 cp .env.example .env   # 编辑 .env 填写数据库与微信配置
 ```
 
@@ -27,7 +27,13 @@ flask db upgrade   # 或 alembic upgrade head
 
 启动：
 ```bash
-python run.py
+python3 run.py
+```
+
+如需演示实时聊天推送，另开一个终端启动 WebSocket 服务：
+
+```bash
+python3 ws_server.py
 ```
 
 ### 2. 小程序前端
@@ -38,11 +44,47 @@ npm install
 node scripts/create-icons.js   # 生成 tabBar 图标
 ```
 
-配置 API 地址：小程序不能访问 `localhost`，需用本机局域网 IP。在 `miniapp/config/index.ts` 中已默认 `http://192.168.0.101:5000`，若你本机 IP 不同，可改为 `TARO_APP_API=http://你的IP:5000` 再执行 `npm run dev:weapp`。
+配置 API 地址：小程序不能访问 `localhost`，需用本机局域网 IP。推荐在 `miniapp/.env` 中配置，例如：
+
+```env
+TARO_APP_API=http://10.10.31.129:5002
+TARO_APP_WS=ws://10.10.31.129:5001
+```
+
+可直接复制 `miniapp/.env.example` 为 `miniapp/.env` 后修改，再执行 `npm run dev:weapp`。若未配置 `.env`，前端会默认使用 `http://10.10.31.129:5002`，并将 WebSocket 地址推导为 `ws://10.10.31.129:5001`。其中 Flask HTTP 服务默认监听 5002，独立 WebSocket 聊天服务默认监听 5001。
 
 编译并预览：
 ```bash
 npm run dev:weapp
+```
+
+### 2.5 后台管理前端
+
+```bash
+cd admin-web
+npm install
+cp .env.example .env
+npm run dev
+```
+
+默认访问地址：
+
+- `http://127.0.0.1:5174`
+
+默认对接后端接口：
+
+- `http://127.0.0.1:5002/api/admin`
+
+默认管理员账号：
+
+- 账号：`admin`
+- 密码：`admin123456`
+
+说明：当 `admin` 表为空时，首次访问后台登录接口会自动初始化该管理员。若需自定义，可在 `backend/.env` 中增加：
+
+```env
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=admin123456
 ```
 
 用微信开发者工具打开项目并配置：
@@ -59,6 +101,7 @@ npm run dev:weapp
 ## 技术栈
 
 - **前端**：Taro 3 + React 18 + TypeScript
+- **后台管理前端**：Vue 3 + Vite + TypeScript
 - **后端**：Flask + SQLAlchemy + MySQL
 - **核心**：LBS 邻近检索（Haversine 公式）、地理围栏
 
@@ -67,7 +110,8 @@ npm run dev:weapp
 - 用户登录、资料管理
 - 商品发布（含位置选点）
 - 邻近检索、地图展示
-- 商品详情、联系卖家（聊天占位）
+- 商品详情、联系卖家、即时聊天
+- 后台管理：工作台、用户管理、商品审核、举报处理、分类管理、订单管理、评价管理、管理员管理、操作日志
 
 详见 `docs/README.md`、`docs/需求文档/01-需求文档.md`、`docs/技术文档/02-技术架构设计.md`。
 
@@ -94,7 +138,7 @@ npm run dev:weapp
 
 ### 1. 请求根本没到后端（网络/防火墙）
 
-**现象**：运行 `python run.py` 的终端里，在小程序发起请求时**没有**出现 `[Req] GET /api/xxx` 这类日志。
+**现象**：运行 `python3 run.py` 的终端里，在小程序发起请求时**没有**出现 `[Req] GET /api/xxx` 这类日志。
 
 **处理**：让本机 5000 端口可被访问。
 

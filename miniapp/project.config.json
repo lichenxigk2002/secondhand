@@ -1,7 +1,7 @@
 {
   "miniprogramRoot": "dist/",
-  "projectname": "lbs-secondhand-miniapp",
-  "description": "基于LBS的校园二手交易微信小程序",
+  "projectname": "linwuji-miniapp",
+  "description": "邻物集 - 校内闲置流转微信小程序",
   "appid": "wxea6a4ef2f5e672e9",
   "setting": {
     "urlCheck": true,

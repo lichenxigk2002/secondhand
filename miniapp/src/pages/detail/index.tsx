@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { View, Text, Image, Button, Swiper, SwiperItem, Input, ScrollView } from '@tarojs/components'
+import { View, Text, Image, Button, Swiper, SwiperItem, Input } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { goodsApi, favoriteApi, browseApi, reportApi, goodsCommentApi, Goods, GoodsCommentItem } from '@/services/api'
 import './index.scss'
@@ -11,6 +11,8 @@ export default function Detail() {
   const [comments, setComments] = useState<GoodsCommentItem[]>([])
   const [commentInput, setCommentInput] = useState('')
   const [commentSubmitting, setCommentSubmitting] = useState(false)
+  const token = Taro.getStorageSync('token')
+  const currentUser = Taro.getStorageSync('user_info')
 
   const loadComments = (gid: number) => {
     goodsCommentApi.list(gid).then((res) => setComments(res?.list || [])).catch(() => setComments([]))
@@ -25,13 +27,13 @@ export default function Detail() {
         .then((g) => {
           setGoods(g)
           loadComments(g.id)
-          if (Taro.getStorageSync('token')) {
+          if (token) {
             browseApi.record(g.id).catch(() => {})
           }
         })
         .catch(() => Taro.showToast({ title: '加载失败', icon: 'none' }))
         .finally(() => setLoading(false))
-      if (Taro.getStorageSync('token')) {
+      if (token) {
         favoriteApi.check(idNum).then((res) => setFavorited(res.favorited))
       }
     } else {
@@ -40,7 +42,7 @@ export default function Detail() {
   }, [])
 
   const toggleFavorite = () => {
-    if (!goods || !Taro.getStorageSync('token')) {
+    if (!goods || !token) {
       Taro.showToast({ title: '请先登录', icon: 'none' })
       return
     }
@@ -52,6 +54,22 @@ export default function Detail() {
 
   const chat = () => {
     if (!goods) return
+    if ((goods as any).auditStatus === 0) {
+      Taro.showToast({ title: '该商品审核中', icon: 'none' })
+      return
+    }
+    if ((goods as any).auditStatus === 2) {
+      Taro.showToast({ title: '该商品未通过审核', icon: 'none' })
+      return
+    }
+    if ((goods as any).status === 0) {
+      Taro.showToast({ title: '该商品已下架', icon: 'none' })
+      return
+    }
+    if ((goods as any).status === 2) {
+      Taro.showToast({ title: '该商品已售出', icon: 'none' })
+      return
+    }
     Taro.navigateTo({
       url: `/pages/chat/index?targetId=${goods.userId}&goodsId=${goods.id}`,
     })
@@ -78,7 +96,7 @@ export default function Detail() {
       Taro.showToast({ title: '请输入评论内容', icon: 'none' })
       return
     }
-    if (!Taro.getStorageSync('token')) {
+    if (!token) {
       Taro.showToast({ title: '请先登录', icon: 'none' })
       return
     }
@@ -105,6 +123,23 @@ export default function Detail() {
     return d.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
   }
 
+  const statusMap: Record<number, string> = {
+    0: '已下架',
+    1: '在售中',
+    2: '已售出',
+  }
+
+  const auditMap: Record<number, string> = {
+    0: '审核中',
+    1: '已通过',
+    2: '未通过',
+  }
+
+  const goEdit = () => {
+    if (!goods) return
+    Taro.navigateTo({ url: `/pages/publish-edit/index?id=${goods.id}` })
+  }
+
   if (loading) {
     return (
       <View className="detail-page loading">
@@ -125,6 +160,7 @@ export default function Detail() {
 
   const imgs = goods.images?.length ? goods.images : ['']
   const hasDesc = typeof goods.description === 'string' ? goods.description.trim() : ''
+  const isOwner = !!token && Number(currentUser?.id || 0) === goods.userId
 
   return (
     <View className="detail-page">
@@ -146,12 +182,20 @@ export default function Detail() {
           </Text>
         </View>
         <Text className="title">{String(goods.title ?? '')}</Text>
-        {goods.viewCount != null && goods.viewCount > 0 && (
-          <Text className="view-count">浏览 {goods.viewCount}</Text>
-        )}
-        {goods.distance != null && (
-          <Text className="distance">距离 {goods.distance.toFixed(1)} km</Text>
-        )}
+        <View className="status-row">
+          <Text className={`status-tag s${(goods as any).status ?? 1}`}>{statusMap[(goods as any).status ?? 1] || '状态未知'}</Text>
+          <Text className={`audit-tag a${(goods as any).auditStatus ?? 1}`}>{auditMap[(goods as any).auditStatus ?? 1] || '审核未知'}</Text>
+        </View>
+        <View className="meta-row">
+          {goods.viewCount != null && <Text className="view-count">浏览 {goods.viewCount}</Text>}
+          {goods.distance != null && <Text className="distance">距离 {goods.distance.toFixed(1)} km</Text>}
+          <Text className="view-count">分类 {String((goods as any).category || '未分类')}</Text>
+        </View>
+      </View>
+      <View className="trade-card">
+        <Text className="trade-title">交易说明</Text>
+        <Text className="trade-item">建议当面验货后再交易，避免只凭文字确认商品状态。</Text>
+        <Text className="trade-item">如遇异常商品、冒用信息或恶意引导，请直接举报。</Text>
       </View>
       {hasDesc && (
         <View className="desc-section">
@@ -173,10 +217,16 @@ export default function Detail() {
         </View>
       </View>
       <View className="btns">
-        <Button className="btn-chat" onClick={chat}>
-          联系卖家
-        </Button>
-        <Text className="report-link" onClick={report}>举报</Text>
+        {isOwner ? (
+          <Button className="btn-chat" onClick={goEdit}>
+            编辑商品
+          </Button>
+        ) : (
+          <Button className="btn-chat" onClick={chat}>
+            联系卖家
+          </Button>
+        )}
+        {!isOwner && <Text className="report-link" onClick={report}>举报</Text>}
       </View>
 
       <View className="comment-section">
@@ -193,6 +243,7 @@ export default function Detail() {
             发送
           </Button>
         </View>
+        <Text className="comment-meta">{commentInput.trim().length}/500</Text>
         <View className="comment-list">
           {comments.length === 0 ? (
             <Text className="comment-empty">暂无评论</Text>

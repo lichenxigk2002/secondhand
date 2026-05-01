@@ -4,15 +4,16 @@ import Taro, { SocketTask } from '@tarojs/taro'
 import { messageApi, orderApi, ChatMessage } from '@/services/api'
 import './index.scss'
 
+const DEFAULT_API_BASE = process.env.TARO_APP_API || 'http://10.10.31.129:5002'
 const WS_BASE =
   process.env.TARO_APP_WS ||
-  (process.env.TARO_APP_API || 'http://192.168.0.103:5000')
+  DEFAULT_API_BASE
     .replace(/^http:/i, 'ws:')
     .replace(/^https:/i, 'wss:')
+    .replace(/:5002(?=\/|$)/, ':5001')
 
 export default function Chat() {
   const [conversationId, setConversationId] = useState(0)
-  const [targetId, setTargetId] = useState(0)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(true)
@@ -28,7 +29,6 @@ export default function Chat() {
 
     if (cid) {
       setConversationId(cid)
-      setTargetId(tid)
       loadMessages(cid)
     } else if (tid) {
       messageApi
@@ -36,7 +36,6 @@ export default function Chat() {
         .then((res) => {
           const conv = res.conversation
           setConversationId(conv.id)
-          setTargetId(conv.otherUser?.id || tid)
           loadMessages(conv.id)
           if (gid) {
             orderApi.create(gid).catch(() => {})

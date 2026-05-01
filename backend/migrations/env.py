@@ -22,7 +22,7 @@ for cfg_path in [config.config_file_name, os.path.join(root_dir, 'alembic.ini')]
 
 target_metadata = db.metadata
 cfg = Config()
-config.set_main_option('sqlalchemy.url', cfg.SQLALCHEMY_DATABASE_URI)
+config.set_main_option('sqlalchemy.url', cfg.SQLALCHEMY_DATABASE_URI.replace('%', '%%'))
 
 
 def run_migrations_offline():

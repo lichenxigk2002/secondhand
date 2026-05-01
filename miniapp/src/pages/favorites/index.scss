@@ -1,6 +1,7 @@
 .favorites-page {
   min-height: 100vh;
   background: #f7f8fa;
+  padding-bottom: calc(140rpx + env(safe-area-inset-bottom));
 
   .login-tip {
     padding: 120rpx 48rpx;
@@ -9,9 +10,10 @@
       display: inline-block;
       margin-top: 32rpx;
       padding: 20rpx 48rpx;
-      background: #07c160;
-      color: #fff;
-      border-radius: 32rpx;
+      background: var(--color-primary);
+      color: #222;
+      border-radius: 999rpx;
+      font-weight: 600;
     }
   }
 
@@ -42,10 +44,11 @@
     }
     .empty-btn {
       padding: 20rpx 48rpx;
-      background: #07c160;
-      color: #fff;
+      background: var(--color-primary);
+      color: #222;
       font-size: 28rpx;
-      border-radius: 32rpx;
+      border-radius: 999rpx;
+      font-weight: 600;
     }
   }
 
@@ -53,5 +56,6 @@
     display: flex;
     flex-wrap: wrap;
     gap: 16rpx;
+    align-items: flex-start;
   }
 }

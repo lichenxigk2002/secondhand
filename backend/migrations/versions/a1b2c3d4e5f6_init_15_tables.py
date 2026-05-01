@@ -35,7 +35,7 @@ def upgrade():
         'admin',
         sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
         sa.Column('username', sa.String(32), nullable=False),
-        sa.Column('password', sa.String(128), nullable=False),
+        sa.Column('password', sa.String(255), nullable=False),
         sa.Column('real_name', sa.String(32), server_default='', nullable=True),
         sa.Column('role', sa.String(16), server_default='admin', nullable=True),
         sa.Column('status', sa.SmallInteger(), server_default='1', nullable=True),

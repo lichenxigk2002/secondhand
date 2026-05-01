@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { View, Text, ScrollView, Image } from '@tarojs/components'
+import { View, Text, ScrollView } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { favoriteApi, Goods } from '@/services/api'
 import GoodCard from '@/components/GoodCard'
@@ -12,6 +12,12 @@ export default function Favorites() {
   useEffect(() => {
     load()
   }, [])
+
+  Taro.useDidShow(() => {
+    if (Taro.getStorageSync('token')) {
+      load()
+    }
+  })
 
   const load = () => {
     if (!Taro.getStorageSync('token')) {

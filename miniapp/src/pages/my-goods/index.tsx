@@ -19,6 +19,12 @@ export default function MyGoods() {
     load()
   }, [tab])
 
+  Taro.useDidShow(() => {
+    if (Taro.getStorageSync('token')) {
+      load()
+    }
+  })
+
   const load = () => {
     if (!Taro.getStorageSync('token')) {
       Taro.showToast({ title: '请先登录', icon: 'none' })
@@ -74,7 +80,7 @@ export default function MyGoods() {
 
   const goEdit = (g: Goods, e: any) => {
     e.stopPropagation()
-    Taro.navigateTo({ url: `/pages/publish/index?id=${g.id}` })
+    Taro.navigateTo({ url: `/pages/publish-edit/index?id=${g.id}` })
   }
 
   if (!Taro.getStorageSync('token')) {

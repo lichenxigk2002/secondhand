@@ -36,7 +36,7 @@ class Admin(db.Model):
     __tablename__ = 'admin'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(32), unique=True, nullable=False)
-    password = db.Column(db.String(128), nullable=False)
+    password = db.Column(db.String(255), nullable=False)
     real_name = db.Column(db.String(32), default='')
     role = db.Column(db.String(16), default='admin')  # admin/super_admin
     status = db.Column(db.SmallInteger, default=1)  # 0 禁用 1 正常

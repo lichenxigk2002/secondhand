@@ -14,8 +14,8 @@ const config = {
   outputRoot: 'dist',
   plugins: ['@tarojs/plugin-framework-react'],
   defineConstants: {
-    // 小程序开发者工具无法访问 localhost，需用本机局域网 IP。可设置环境变量覆盖：TARO_APP_API=http://你的IP:5000
-    'process.env.TARO_APP_API': JSON.stringify(process.env.TARO_APP_API || 'http://192.168.0.103:5000'),
+    // 小程序开发者工具无法访问 localhost，需用本机局域网 IP。优先从 miniapp/.env 读取。
+    'process.env.TARO_APP_API': JSON.stringify(process.env.TARO_APP_API || 'http://10.10.31.129:5002'),
     'process.env.TARO_APP_WS': JSON.stringify(process.env.TARO_APP_WS || ''),
   },
   copy: {

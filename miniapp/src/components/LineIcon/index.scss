@@ -1,0 +1,364 @@
+.line-icon {
+  position: relative;
+  display: block;
+  flex-shrink: 0;
+  color: #7e8795;
+  --icon-stroke: 3rpx;
+
+  &.active,
+  &.tone-brand {
+    color: #0f9f6e;
+  }
+
+  &.tone-green {
+    color: #0f9f6e;
+  }
+
+  &.tone-gold {
+    color: #d7a100;
+  }
+
+  &.tone-blue {
+    color: #2f80ed;
+  }
+
+  &.tone-purple {
+    color: #8f5ae8;
+  }
+
+  &.tone-danger {
+    color: #e25555;
+  }
+
+  .glyph {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 62%;
+    line-height: 1;
+    font-weight: 700;
+    color: currentColor;
+  }
+
+  .circle-shell,
+  .plus-circle,
+  .search-ring,
+  .gear-ring.outer,
+  .gear-ring.inner,
+  .user-head,
+  .message-box,
+  .order-sheet,
+  .bag-body,
+  .logout-door,
+  .home-body,
+  .bookmark-body {
+    position: absolute;
+    box-sizing: border-box;
+    border: var(--icon-stroke) solid currentColor;
+  }
+
+  .message-dot,
+  .gear-tick,
+  .order-line,
+  .logout-line,
+  .search-handle,
+  .plus-h,
+  .plus-v,
+  .home-roof,
+  .chevron-line {
+    position: absolute;
+    background: currentColor;
+    border-radius: 999rpx;
+  }
+
+  &.home {
+    .home-roof {
+      width: 36%;
+      height: var(--icon-stroke);
+      top: 23%;
+    }
+
+    .home-roof.left {
+      left: 15%;
+      transform: rotate(-34deg);
+      transform-origin: left center;
+    }
+
+    .home-roof.right {
+      right: 15%;
+      transform: rotate(34deg);
+      transform-origin: right center;
+    }
+
+    .home-body {
+      left: 22%;
+      right: 22%;
+      bottom: 14%;
+      top: 38%;
+      border-radius: 8rpx;
+      border-top: none;
+    }
+  }
+
+  &.user {
+    .user-head {
+      width: 36%;
+      height: 36%;
+      left: 32%;
+      top: 8%;
+      border-radius: 50%;
+    }
+
+    .user-body {
+      position: absolute;
+      left: 18%;
+      right: 18%;
+      bottom: 14%;
+      height: 36%;
+      border: var(--icon-stroke) solid currentColor;
+      border-top-left-radius: 999rpx;
+      border-top-right-radius: 999rpx;
+      border-bottom: none;
+    }
+  }
+
+  &.plus {
+    .plus-circle {
+      inset: 10%;
+      border-radius: 50%;
+    }
+
+    .plus-h {
+      left: 30%;
+      right: 30%;
+      top: 48%;
+      height: var(--icon-stroke);
+    }
+
+    .plus-v {
+      top: 30%;
+      bottom: 30%;
+      left: 48%;
+      width: var(--icon-stroke);
+    }
+  }
+
+  &.message {
+    .message-box {
+      left: 10%;
+      right: 10%;
+      top: 12%;
+      bottom: 24%;
+      border-radius: 14rpx;
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .message-tail {
+      position: absolute;
+      left: 24%;
+      bottom: 13%;
+      width: 14%;
+      height: 12%;
+      border-left: var(--icon-stroke) solid currentColor;
+      border-bottom: var(--icon-stroke) solid currentColor;
+      transform: skewY(-28deg);
+      border-bottom-left-radius: 6rpx;
+    }
+
+    .message-dot {
+      top: 43%;
+      width: 10%;
+      height: 10%;
+      border-radius: 50%;
+    }
+
+    .dot-1 { left: 24%; }
+    .dot-2 { left: 45%; }
+    .dot-3 { left: 66%; }
+  }
+
+  &.help {
+    .circle-shell {
+      inset: 11%;
+      border-radius: 50%;
+    }
+
+    .glyph {
+      font-size: 72%;
+      font-weight: 800;
+      transform: translateY(-2%);
+    }
+  }
+
+  &.settings {
+    .gear-ring.outer {
+      inset: 15%;
+      border-radius: 50%;
+    }
+
+    .gear-ring.inner {
+      inset: 32%;
+      border-radius: 50%;
+    }
+
+    .gear-tick {
+      width: var(--icon-stroke);
+      height: 12%;
+      left: 48%;
+      border-radius: 999rpx;
+    }
+
+    .tick-top { top: 7%; }
+    .tick-bottom { bottom: 7%; }
+
+    .tick-left,
+    .tick-right {
+      width: 12%;
+      height: var(--icon-stroke);
+      top: 48%;
+    }
+
+    .tick-left { left: 7%; }
+    .tick-right { right: 7%; }
+  }
+
+  &.logout {
+    .logout-door {
+      left: 12%;
+      top: 18%;
+      bottom: 18%;
+      width: 28%;
+      border-radius: 10rpx;
+      border-right: none;
+    }
+
+    .logout-line {
+      left: 42%;
+      right: 18%;
+      top: 48%;
+      height: var(--icon-stroke);
+    }
+
+    .logout-arrow {
+      width: 18%;
+      height: var(--icon-stroke);
+      right: 15%;
+    }
+
+    .top {
+      top: 39%;
+      transform: rotate(38deg);
+      transform-origin: right center;
+    }
+
+    .bottom {
+      top: 57%;
+      transform: rotate(-38deg);
+      transform-origin: right center;
+    }
+  }
+
+  &.order {
+    .order-sheet {
+      left: 18%;
+      right: 18%;
+      top: 12%;
+      bottom: 12%;
+      border-radius: 10rpx;
+    }
+
+    .order-line {
+      left: 28%;
+      right: 28%;
+      height: var(--icon-stroke);
+    }
+
+    .line-1 { top: 32%; }
+    .line-2 { top: 48%; }
+    .line-3 { top: 64%; }
+  }
+
+  &.bookmark {
+    .bookmark-body {
+      left: 27%;
+      right: 27%;
+      top: 14%;
+      bottom: 16%;
+      border-radius: 9rpx 9rpx 7rpx 7rpx;
+    }
+
+    .bookmark-notch {
+      position: absolute;
+      left: 39%;
+      right: 39%;
+      bottom: 17%;
+      height: 16%;
+      background: var(--color-bg, #fff);
+      transform: rotate(45deg);
+    }
+  }
+
+  &.bag {
+    .bag-handle {
+      position: absolute;
+      left: 33%;
+      right: 33%;
+      top: 16%;
+      height: 16%;
+      border: var(--icon-stroke) solid currentColor;
+      border-bottom: none;
+      border-top-left-radius: 999rpx;
+      border-top-right-radius: 999rpx;
+      background: transparent;
+    }
+
+    .bag-body {
+      left: 18%;
+      right: 18%;
+      top: 28%;
+      bottom: 14%;
+      border-radius: 12rpx;
+    }
+  }
+
+  &.search {
+    .search-ring {
+      left: 14%;
+      top: 12%;
+      width: 50%;
+      height: 50%;
+      border-radius: 50%;
+    }
+
+    .search-handle {
+      width: 26%;
+      height: var(--icon-stroke);
+      right: 13%;
+      bottom: 18%;
+      transform: rotate(45deg);
+      transform-origin: right center;
+    }
+  }
+
+  &.chevron-right {
+    .chevron-line {
+      width: 34%;
+      height: var(--icon-stroke);
+      right: 23%;
+    }
+
+    .top {
+      top: 36%;
+      transform: rotate(42deg);
+      transform-origin: right center;
+    }
+
+    .bottom {
+      top: 58%;
+      transform: rotate(-42deg);
+      transform-origin: right center;
+    }
+  }
+}

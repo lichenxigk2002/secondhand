@@ -1,6 +1,44 @@
 .orders-page {
   min-height: 100vh;
   background: #f7f8fa;
+  padding-bottom: calc(140rpx + env(safe-area-inset-bottom));
+
+  .filter-card {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 24rpx 16rpx 8rpx;
+    background: linear-gradient(180deg, #f7f8fa 0%, rgba(247, 248, 250, 0.96) 100%);
+    backdrop-filter: blur(8rpx);
+  }
+
+  .tab-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16rpx;
+    margin-bottom: 16rpx;
+
+    &.compact {
+      margin-bottom: 0;
+    }
+  }
+
+  .filter-chip {
+    padding: 14rpx 24rpx;
+    border-radius: 999rpx;
+    background: #fff;
+    color: #666;
+    font-size: 24rpx;
+
+    &.subtle {
+      background: #eef1f4;
+    }
+
+    &.active {
+      background: #222;
+      color: #fff;
+    }
+  }
 
   .list { height: 100vh; }
   .list-inner { padding: 16rpx; min-height: 100%; }
@@ -18,16 +56,30 @@
 
   .order-item {
     background: #fff;
-    border-radius: 16rpx;
+    border-radius: 22rpx;
     padding: 24rpx;
     margin-bottom: 16rpx;
+    box-shadow: 0 8rpx 24rpx rgba(15, 23, 42, 0.05);
 
-    .goods-row {
+    .order-head {
       display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20rpx;
+
+      .order-no {
+        font-size: 23rpx;
+        color: #999;
+      }
+    }
+
+      .goods-row {
+      display: flex;
+      align-items: center;
       .thumb {
         width: 120rpx;
         height: 120rpx;
-        border-radius: 12rpx;
+        border-radius: 16rpx;
         background: #f5f6f8;
         flex-shrink: 0;
       }
@@ -37,17 +89,29 @@
         .title { font-size: 28rpx; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .amount { font-size: 32rpx; color: #ff4444; font-weight: bold; display: block; margin-top: 12rpx; }
         .status { font-size: 24rpx; margin-top: 8rpx; }
+        .role-tag { font-size: 22rpx; margin-top: 10rpx; color: #666; display: block; }
         .s0, .s1 { color: #ff9800; }
         .s2 { color: #07c160; }
       }
     }
     .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16rpx;
       margin-top: 20rpx;
       padding-top: 20rpx;
       border-top: 1rpx solid #f0f0f0;
       .btn {
-        margin-right: 16rpx;
-        &.primary { background: #07c160; color: #fff; }
+        margin: 0;
+        min-width: 160rpx;
+        height: 64rpx;
+        line-height: 64rpx;
+        border-radius: 999rpx;
+        font-size: 24rpx;
+        border: none;
+        &::after { border: none; }
+        &.primary { background: #1f2329; color: #fff7d6; }
+        &.secondary { background: #f2f4f7; color: #333; }
       }
     }
   }

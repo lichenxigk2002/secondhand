@@ -2,7 +2,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #f5f6f8;
+  background: #f7f8fa;
 
   .message-list {
     flex: 1;
@@ -30,11 +30,11 @@
       max-width: 70%;
       padding: 20rpx 24rpx;
       background: #fff;
-      border-radius: 16rpx;
-      box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+      border-radius: 20rpx;
+      box-shadow: 0 6rpx 18rpx rgba(15, 23, 42, 0.06);
 
       &.me {
-        background: #95ec69;
+        background: #ffe28a;
       }
 
       .text {
@@ -57,8 +57,10 @@
     align-items: center;
     padding: 20rpx 24rpx;
     padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-    background: #fff;
+    background: rgba(255, 255, 255, 0.96);
     gap: 16rpx;
+    border-top: 1rpx solid rgba(15, 23, 42, 0.06);
+    box-shadow: 0 -8rpx 28rpx rgba(15, 23, 42, 0.05);
 
     .input {
       flex: 1;
@@ -73,13 +75,19 @@
       padding: 0 32rpx;
       height: 72rpx;
       line-height: 72rpx;
-      background: #07c160;
-      color: #fff;
+      background: #1f2329;
+      color: #fff7d6;
       font-size: 28rpx;
       border-radius: 36rpx;
+      border: none;
+
+      &::after {
+        border: none;
+      }
 
       &[disabled] {
-        background: #ccc;
+        background: #d0d5dd;
+        color: #98a2b3;
       }
     }
   }

@@ -21,10 +21,17 @@ function formatTime(iso: string) {
 export default function ChatList() {
   const [list, setList] = useState<Conversation[]>([])
   const [loading, setLoading] = useState(true)
+  const unreadCount = list.reduce((sum, item) => sum + (item.unread || 0), 0)
 
   useEffect(() => {
     load()
   }, [])
+
+  Taro.useDidShow(() => {
+    if (Taro.getStorageSync('token')) {
+      load()
+    }
+  })
 
   const load = () => {
     if (!Taro.getStorageSync('token')) {
@@ -64,6 +71,12 @@ export default function ChatList() {
 
   return (
     <View className="chat-list-page">
+      <View className="summary-card">
+        <Text className="summary-title">消息中心</Text>
+        <Text className="summary-subtitle">
+          {unreadCount > 0 ? `你有 ${unreadCount} 条未读消息，建议优先回复活跃买家。` : '当前没有未读消息，沟通会记录在这里。'}
+        </Text>
+      </View>
       <ScrollView scrollY className="list" onScrollToUpper={load}>
         <View className="list-inner">
         {loading ? (
@@ -105,6 +118,7 @@ export default function ChatList() {
                     <Text className="last-msg">
                       {c.lastMessage || '暂无消息'}
                     </Text>
+                    {c.goodsId ? <Text className="goods-tag">商品会话</Text> : null}
                   </View>
                 </View>
               </View>

@@ -1,6 +1,30 @@
 .chat-list-page {
   min-height: 100vh;
   background: #f7f8fa;
+  padding-bottom: calc(140rpx + env(safe-area-inset-bottom));
+
+  .summary-card {
+    margin: 24rpx 24rpx 0;
+    padding: 28rpx;
+    border-radius: 24rpx;
+    background: linear-gradient(135deg, #fff4cf, #fff);
+    box-shadow: 0 8rpx 24rpx rgba(255, 209, 0, 0.14);
+
+    .summary-title {
+      display: block;
+      color: #222;
+      font-size: 34rpx;
+      font-weight: 700;
+      margin-bottom: 10rpx;
+    }
+
+    .summary-subtitle {
+      display: block;
+      color: #666;
+      font-size: 24rpx;
+      line-height: 1.7;
+    }
+  }
 
   .login-tip {
     display: flex;
@@ -133,6 +157,16 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+      }
+
+      .goods-tag {
+        flex-shrink: 0;
+        margin-left: 16rpx;
+        padding: 6rpx 14rpx;
+        border-radius: 999rpx;
+        background: #fff5d8;
+        color: #9b6b00;
+        font-size: 20rpx;
       }
     }
   }
