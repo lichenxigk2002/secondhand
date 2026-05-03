@@ -32,27 +32,7 @@ def my_orders():
         if status is not None:
             q = q.filter(Order.status == status)
         orders = q.order_by(Order.create_time.desc()).limit(50).all()
-        result = []
-        for o in orders:
-            d = {
-                'id': o.id,
-                'orderNo': o.order_no,
-                'buyerId': o.buyer_id,
-                'sellerId': o.seller_id,
-                'goodsId': o.goods_id,
-                'amount': float(o.amount),
-                'status': o.status,
-                'createTime': o.create_time.isoformat() if o.create_time else '',
-                'completeTime': o.complete_time.isoformat() if o.complete_time else '',
-            }
-            if o.goods:
-                d['goods'] = o.goods.to_dict()
-            if o.buyer:
-                d['buyer'] = o.buyer.to_dict()
-            if o.seller:
-                d['seller'] = o.seller.to_dict()
-            d['isBuyer'] = o.buyer_id == user.id
-            result.append(d)
+        result = [_order_to_dict(o, user.id) for o in orders]
         return {'list': result}
     except Exception as e:
         current_app.logger.exception('my_orders error')
@@ -97,9 +77,28 @@ def create_order():
     return {'order': _order_to_dict(o, user.id)}
 
 
+@order_bp.route('/<int:oid>/send', methods=['PUT'])
+def send_order(oid):
+    """卖家确认发出"""
+    user = get_current_user()
+    if not user:
+        return {'message': '未登录'}, 401
+    o = Order.query.get(oid)
+    if not o:
+        return {'message': '订单不存在'}, 404
+    if o.seller_id != user.id:
+        return {'message': '只有卖家可以执行此操作'}, 403
+    if o.status != 0:
+        return {'message': '订单当前状态不允许发出'}, 400
+    
+    o.status = 1  # 变为“已发出/进行中”
+    db.session.commit()
+    return {'order': _order_to_dict(o, user.id)}
+
+
 @order_bp.route('/<int:oid>/complete', methods=['PUT'])
 def complete_order(oid):
-    """确认交易完成"""
+    """买家确认收货（交易完成）"""
     from datetime import datetime
     user = get_current_user()
     if not user:
@@ -107,19 +106,23 @@ def complete_order(oid):
     o = Order.query.get(oid)
     if not o:
         return {'message': '订单不存在'}, 404
-    if o.buyer_id != user.id and o.seller_id != user.id:
-        return {'message': '无权限'}, 403
-    if o.status != 0 and o.status != 1:
-        return {'message': '订单状态不允许'}, 400
+    if o.buyer_id != user.id:
+        return {'message': '只有买家可以确认收货'}, 403
+    if o.status != 1:
+        return {'message': '请等待卖家发出后再确认收货'}, 400
+    
     o.status = 2
     o.complete_time = datetime.utcnow()
     if o.goods:
-        o.goods.status = 2
+        o.goods.status = 2  # 商品设为已售
+    
+    # 自动取消该商品的其他意向订单
     Order.query.filter(
         Order.goods_id == o.goods_id,
         Order.id != o.id,
         Order.status.in_([0, 1]),
     ).update({'status': 3}, synchronize_session=False)
+    
     db.session.commit()
     return {'order': _order_to_dict(o, user.id)}
 
@@ -135,9 +138,14 @@ def _order_to_dict(o, current_user_id):
         'amount': float(o.amount),
         'status': o.status,
         'createTime': o.create_time.isoformat() if o.create_time else '',
+        'completeTime': o.complete_time.isoformat() if o.complete_time else '',
     }
     if o.goods:
         d['goods'] = o.goods.to_dict()
+    if o.buyer:
+        d['buyer'] = o.buyer.to_dict()
+    if o.seller:
+        d['seller'] = o.seller.to_dict()
     d['isBuyer'] = o.buyer_id == current_user_id
     to_user = o.seller_id if o.buyer_id == current_user_id else o.buyer_id
     d['toUserId'] = to_user

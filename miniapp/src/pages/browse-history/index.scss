@@ -9,13 +9,14 @@
       display: inline-block;
       margin-top: 32rpx;
       padding: 20rpx 48rpx;
-      background: #07c160;
-      color: #fff;
-      border-radius: 32rpx;
+      background: var(--color-primary);
+      color: #222;
+      border-radius: 999rpx;
+      font-weight: 600;
     }
   }
 
-  .list { height: 100vh; padding: 16rpx; }
+  .list { height: 100vh; }
   .loading { display: block; text-align: center; padding: 80rpx 0; color: #999; }
 
   .empty {
@@ -27,16 +28,77 @@
     .empty-text { color: #999; margin-bottom: 32rpx; }
     .empty-btn {
       padding: 20rpx 48rpx;
-      background: #07c160;
-      color: #fff;
+      background: var(--color-primary);
+      color: #222;
       font-size: 28rpx;
-      border-radius: 32rpx;
+      border-radius: 999rpx;
+      font-weight: 600;
     }
   }
 
-  .goods-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16rpx;
+  .goods-list {
+    padding: 16rpx;
+
+    .item {
+      display: flex;
+      background: #fff;
+      border-radius: 22rpx;
+      padding: 24rpx;
+      margin-bottom: 16rpx;
+      box-shadow: 0 8rpx 24rpx rgba(15, 23, 42, 0.05);
+
+      .thumb {
+        width: 160rpx;
+        height: 160rpx;
+        border-radius: 16rpx;
+        background: #f5f6f8;
+        flex-shrink: 0;
+      }
+
+      .info {
+        flex: 1;
+        margin-left: 24rpx;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+
+        .title {
+          font-size: 30rpx;
+          color: #333;
+          font-weight: 600;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+        }
+
+        .price {
+          font-size: 32rpx;
+          color: var(--color-price);
+          font-weight: bold;
+          margin-top: 12rpx;
+        }
+
+        .user-row {
+          display: flex;
+          align-items: center;
+          margin-top: auto;
+          padding-top: 12rpx;
+
+          .avatar {
+            width: 32rpx;
+            height: 32rpx;
+            border-radius: 50%;
+            margin-right: 10rpx;
+          }
+
+          .name {
+            font-size: 22rpx;
+            color: #999;
+          }
+        }
+      }
+    }
   }
 }

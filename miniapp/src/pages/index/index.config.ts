@@ -1,7 +1,7 @@
 export default definePageConfig({
   enablePullDownRefresh: true,
   usingComponents: {
-    't-search': 'tdesign-miniprogram/miniprogram_dist/search/search',
-    't-icon': 'tdesign-miniprogram/miniprogram_dist/icon/icon',
+    't-search': '../../components/tdesign-miniprogram/search/search',
+    't-icon': '../../components/tdesign-miniprogram/icon/icon',
   },
 })

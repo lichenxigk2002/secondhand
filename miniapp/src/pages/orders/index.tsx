@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, Image, Button } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { orderApi, OrderItem } from '@/services/api'
+import { fixImageUrl } from '@/utils/request'
 import './index.scss'
 
 const STATUS_MAP: Record<number, string> = {
-  0: '待确认',
-  1: '进行中',
+  0: '待发出',
+  1: '待收货',
   2: '已完成',
   3: '已取消',
 }
@@ -49,14 +50,29 @@ export default function Orders() {
       .finally(() => setLoading(false))
   }
 
+  const send = (o: OrderItem) => {
+    Taro.showModal({
+      title: '确认发出',
+      content: '确认已将商品交给买家或已发出？确认后买家即可确认收货。',
+      success: (res) => {
+        if (res.confirm) {
+          orderApi.send(o.id).then(() => {
+            Taro.showToast({ title: '已发出' })
+            load()
+          })
+        }
+      },
+    })
+  }
+
   const complete = (o: OrderItem) => {
     Taro.showModal({
-      title: '确认',
-      content: '确认交易已完成？确认后商品会标记为已售出，其他意向订单会自动关闭。',
+      title: '确认收货',
+      content: '确认已收到商品且交易无误？确认后交易将正式完成，其他意向订单将自动关闭。',
       success: (res) => {
         if (res.confirm) {
           orderApi.complete(o.id).then(() => {
-            Taro.showToast({ title: '已确认' })
+            Taro.showToast({ title: '交易完成' })
             load()
           })
         }
@@ -82,7 +98,8 @@ export default function Orders() {
 
   const statusTabs = [
     { key: 'all', label: '全部状态' },
-    { key: 0, label: '待确认' },
+    { key: 0, label: '待发出' },
+    { key: 1, label: '待收货' },
     { key: 2, label: '已完成' },
   ] as const
 
@@ -138,7 +155,7 @@ export default function Orders() {
                 onClick={() => o.goods && goDetail(o.goods.id)}
               >
                 <Image
-                  src={o.goods?.images?.[0] || ''}
+                  src={fixImageUrl(o.goods?.images?.[0] || '')}
                   className="thumb"
                   mode="aspectFill"
                 />
@@ -149,13 +166,22 @@ export default function Orders() {
                 </View>
               </View>
               <View className="actions">
-                {o.status === 0 && (
+                {o.status === 0 && !o.isBuyer && (
+                  <Button
+                    className="btn primary"
+                    size="mini"
+                    onClick={() => send(o)}
+                  >
+                    确认发出
+                  </Button>
+                )}
+                {o.status === 1 && o.isBuyer && (
                   <Button
                     className="btn primary"
                     size="mini"
                     onClick={() => complete(o)}
                   >
-                    确认完成
+                    确认收货
                   </Button>
                 )}
                 {o.status === 2 && o.canEvaluate && (

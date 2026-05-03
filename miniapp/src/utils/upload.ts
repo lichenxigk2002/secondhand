@@ -2,6 +2,14 @@ import Taro from '@tarojs/taro'
 
 const BASE_URL = process.env.TARO_APP_API || 'http://10.10.31.129:5002'
 
+/**
+ * 判断是否是本地临时文件路径
+ */
+export function isTempPath(path: string): boolean {
+  if (!path) return false
+  return path.startsWith('http://tmp/') || path.startsWith('wxfile://') || !path.startsWith('http')
+}
+
 export async function uploadImage(filePath: string): Promise<string> {
   const token = Taro.getStorageSync('token') || ''
   return new Promise((resolve, reject) => {

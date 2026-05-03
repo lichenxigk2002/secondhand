@@ -2,6 +2,8 @@ import { View, Text, Input, Button, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useState, useEffect } from 'react'
 import { userApi } from '@/services/api'
+import { uploadImage, isTempPath } from '@/utils/upload'
+import { fixImageUrl } from '@/utils/request'
 import './index.scss'
 
 export default function ProfileEdit() {
@@ -25,17 +27,25 @@ export default function ProfileEdit() {
       .finally(() => setLoading(false))
   }, [])
 
-  const save = () => {
+  const save = async () => {
     setSaving(true)
-    userApi
-      .updateProfile({ nickName, avatar, phone, campus })
-      .then((profile) => {
-        Taro.setStorageSync('user_info', profile)
-        Taro.showToast({ title: '保存成功' })
-        setTimeout(() => Taro.navigateBack(), 1500)
-      })
-      .catch(() => setSaving(false))
-      .finally(() => setSaving(false))
+    try {
+      let avatarUrl = avatar
+      if (isTempPath(avatar)) {
+        Taro.showLoading({ title: '上传头像...' })
+        avatarUrl = await uploadImage(avatar)
+        Taro.hideLoading()
+      }
+      const profile = await userApi.updateProfile({ nickName, avatar: avatarUrl, phone, campus })
+      Taro.setStorageSync('user_info', profile)
+      Taro.showToast({ title: '保存成功' })
+      setTimeout(() => Taro.navigateBack(), 1500)
+    } catch (e) {
+      setSaving(false)
+      Taro.hideLoading()
+    } finally {
+      setSaving(false)
+    }
   }
 
   if (loading) {
@@ -65,7 +75,7 @@ export default function ProfileEdit() {
           <View className="avatar-row">
             <Image
               className="avatar-preview"
-              src={avatar || 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0'}
+              src={fixImageUrl(avatar || 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0')}
             />
             <Button className="avatar-btn" openType="chooseAvatar" onChooseAvatar={onChooseAvatar}>
               选择微信头像

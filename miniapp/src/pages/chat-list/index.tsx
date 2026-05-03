@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { View, Text, ScrollView, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { messageApi, Conversation } from '@/services/api'
+import { wsManager } from '@/utils/websocket'
+import { fixImageUrl } from '@/utils/request'
 import './index.scss'
 
 function formatTime(iso: string) {
@@ -25,11 +27,42 @@ export default function ChatList() {
 
   useEffect(() => {
     load()
+    wsManager.connect()
+    
+    const removeListener = wsManager.addListener((data) => {
+      if (data.type === 'message') {
+        const m = data.message
+        setList((prev) => {
+          const newList = [...prev]
+          const idx = newList.findIndex((c) => c.id === m.conversationId)
+          if (idx > -1) {
+            const conv = { ...newList[idx] }
+            conv.lastMessage = m.content
+            conv.lastMessageAt = m.createTime
+            if (!m.isFromMe) {
+              conv.unread = (conv.unread || 0) + 1
+            }
+            newList.splice(idx, 1)
+            newList.unshift(conv)
+            return newList
+          } else {
+            // 新会话，异步重新加载
+            setTimeout(() => load(), 0)
+            return prev
+          }
+        })
+      }
+    })
+
+    return () => {
+      removeListener()
+    }
   }, [])
 
   Taro.useDidShow(() => {
     if (Taro.getStorageSync('token')) {
       load()
+      wsManager.connect()
     }
   })
 
@@ -99,7 +132,7 @@ export default function ChatList() {
               >
                 <View className="avatar-wrap">
                   <Image
-                    src={c.otherUser?.avatar || ''}
+                    src={fixImageUrl(c.otherUser?.avatar || '')}
                     className="avatar"
                     mode="aspectFill"
                   />

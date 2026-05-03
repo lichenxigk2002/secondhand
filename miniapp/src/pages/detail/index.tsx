@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { View, Text, Image, Button, Swiper, SwiperItem, Input } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { goodsApi, favoriteApi, browseApi, reportApi, goodsCommentApi, Goods, GoodsCommentItem } from '@/services/api'
+import { fixImageUrl } from '@/utils/request'
 import './index.scss'
 
 export default function Detail() {
@@ -167,7 +168,7 @@ export default function Detail() {
       <Swiper className="banner" autoplay circular indicatorDots>
         {imgs.map((url, i) => (
           <SwiperItem key={i}>
-            <Image src={url || ''} mode="aspectFill" className="main-img" />
+            <Image src={fixImageUrl(url || '')} mode="aspectFill" className="main-img" />
           </SwiperItem>
         ))}
       </Swiper>
@@ -205,7 +206,7 @@ export default function Detail() {
       )}
       <View className="user-bar">
         <Image
-          src={goods.user?.avatar || ''}
+          src={fixImageUrl(goods.user?.avatar || '')}
           className="avatar"
           mode="aspectFill"
         />
@@ -251,7 +252,7 @@ export default function Detail() {
             comments.map((c) => (
               <View key={c.id} className="comment-item">
                 <Image
-                  src={c.user?.avatar || ''}
+                  src={fixImageUrl(c.user?.avatar || '')}
                   className="comment-avatar"
                   mode="aspectFill"
                 />

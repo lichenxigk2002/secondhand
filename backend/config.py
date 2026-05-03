@@ -17,6 +17,8 @@ class Config:
         f"@{db_host}:{db_port}/{db_name}"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    _backend_url = os.getenv('BACKEND_URL', '')
+    BACKEND_URL = _backend_url.rstrip('/') if _backend_url else ''
     WX_APPID = os.getenv('WX_APPID', '')
     WX_SECRET = os.getenv('WX_SECRET', '')
     AI_PROVIDER = os.getenv('AI_PROVIDER', 'doubao')

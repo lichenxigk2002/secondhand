@@ -1,16 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { View, Text, ScrollView, Input, Button } from '@tarojs/components'
-import Taro, { SocketTask } from '@tarojs/taro'
+import Taro from '@tarojs/taro'
 import { messageApi, orderApi, ChatMessage } from '@/services/api'
+import { wsManager } from '@/utils/websocket'
 import './index.scss'
-
-const DEFAULT_API_BASE = process.env.TARO_APP_API || 'http://10.10.31.129:5002'
-const WS_BASE =
-  process.env.TARO_APP_WS ||
-  DEFAULT_API_BASE
-    .replace(/^http:/i, 'ws:')
-    .replace(/^https:/i, 'wss:')
-    .replace(/:5002(?=\/|$)/, ':5001')
 
 export default function Chat() {
   const [conversationId, setConversationId] = useState(0)
@@ -18,8 +11,8 @@ export default function Chat() {
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
-  const scrollRef = useRef<any>()
-  const socketRef = useRef<SocketTask | null>(null)
+
+  const [scrollTop, setScrollTop] = useState(0)
 
   useEffect(() => {
     const r = Taro.getCurrentInstance().router?.params
@@ -48,50 +41,37 @@ export default function Chat() {
     } else {
       setLoading(false)
     }
-  }, [])
 
-  useEffect(() => {
-    if (!conversationId) return
-    const token = Taro.getStorageSync('token')
-    if (!token) return
-    const url =
-      WS_BASE.replace(/\/$/, '') +
-      `/ws/chat?token=${encodeURIComponent(token)}`
-
-    Taro.connectSocket({ url }).then((task) => {
-      socketRef.current = task
-      task.onOpen(() => {
-        // 连接成功后不需要额外 auth，token 已在 query 中
-      })
-      task.onMessage((msg) => {
-        try {
-          const data = JSON.parse((msg as any).data as string)
-          if (data.type === 'message' && data.message?.conversationId === conversationId) {
-            const m = data.message as ChatMessage & { conversationId: number }
-            setMessages((prev) => [...prev, m])
-            setTimeout(() => scrollRef.current?.scrollTo({ scrollTop: 99999 }), 100)
+    wsManager.connect()
+    const removeListener = wsManager.addListener((data) => {
+      if (data.type === 'message' && data.message?.conversationId === conversationId) {
+        const m = data.message as ChatMessage & { conversationId: number }
+        setMessages((prev) => {
+          const last = prev[prev.length - 1]
+          if (last && last.id > 1700000000000 && last.content === m.content && m.isFromMe) {
+            return [...prev.slice(0, -1), m]
           }
-        } catch {
-          // ignore
-        }
-      })
-      task.onError(() => {
-        // 出错时不强制提示，仍可走 HTTP 发送
-      })
-      task.onClose(() => {
-        if (socketRef.current === task) {
-          socketRef.current = null
-        }
-      })
+          if (prev.find(existing => existing.id === m.id)) return prev
+          return [...prev, m]
+        })
+        scrollToBottom()
+      }
     })
 
     return () => {
-      if (socketRef.current) {
-        socketRef.current.close({})
-        socketRef.current = null
-      }
+      removeListener()
     }
   }, [conversationId])
+
+  const scrollToBottom = () => {
+    // 方案一：使用 scrollIntoView
+    setMessages((prev) => [...prev]) // 触发重绘以确保 ID 存在
+    // 方案二：手动设置 scrollTop
+    setTimeout(() => {
+      setScrollTop((prev) => prev + 1) // 稍微抖动一下强制触发
+      setScrollTop(99999)
+    }, 100)
+  }
 
   const loadMessages = (cid: number) => {
     setLoading(true)
@@ -108,26 +88,44 @@ export default function Chat() {
     setSending(true)
     setContent('')
 
+    // 构造临时消息实现“即时上屏”
+    const tempId = Date.now()
+    const tempMsg: ChatMessage = {
+      id: tempId,
+      content: text,
+      fromUserId: 0, // 临时占位
+      toUserId: 0,
+      createTime: new Date().toISOString(),
+      isFromMe: true,
+    }
+    setMessages((prev) => [...prev, tempMsg])
+    scrollToBottom()
+
     const payload = {
       type: 'send',
       conversationId,
       content: text,
     }
 
-    const ws = socketRef.current
-    if (ws) {
-      ws.send({ data: JSON.stringify(payload) })
-      // 实际消息到达由服务端广播再追加
+    if (wsManager.isReady()) {
+      wsManager.send(payload)
+      // 发送后移除临时消息的任务交给 onMessage 的正式消息（正式消息 ID 会覆盖或追加）
+      // 为了简单起见，我们这里只处理发送状态
       setSending(false)
     } else {
       // 回退到 HTTP 发送
       messageApi
         .sendMessage(conversationId, text)
         .then((msg) => {
-          setMessages((prev) => [...prev, msg])
-          setTimeout(() => scrollRef.current?.scrollTo({ scrollTop: 99999 }), 100)
+          // 替换掉刚才的临时消息
+          setMessages((prev) => prev.map(m => m.id === tempId ? msg : m))
+          scrollToBottom()
         })
-        .catch(() => setContent(text))
+        .catch(() => {
+          setContent(text)
+          // 移除发送失败的临时消息
+          setMessages((prev) => prev.filter(m => m.id !== tempId))
+        })
         .finally(() => setSending(false))
     }
   }
@@ -147,30 +145,33 @@ export default function Chat() {
   return (
     <View className="chat-page">
       <ScrollView
-        ref={scrollRef}
-        scrollY
-        className="message-list"
-        scrollIntoView={`msg-${messages.length - 1}`}
-      >
-        {loading ? (
-          <Text className="loading">加载中...</Text>
-        ) : messages.length === 0 ? (
-          <Text className="empty-tip">暂无消息，发一句打招呼吧</Text>
-        ) : (
-          messages.map((m) => (
-            <View
-              key={m.id}
-              id={`msg-${m.id}`}
-              className={`msg-row ${m.isFromMe ? 'me' : ''}`}
-            >
-              <View className={`bubble ${m.isFromMe ? 'me' : ''}`}>
-                <Text className="text">{m.content}</Text>
-                <Text className="time">{formatTime(m.createTime)}</Text>
-              </View>
-            </View>
-          ))
-        )}
-      </ScrollView>
+          scrollY
+          className="message-list"
+          scrollTop={scrollTop}
+          scrollWithAnimation
+          scrollIntoView={`msg-${messages.length - 1}`}
+        >
+          <View className="message-list-inner">
+            {loading ? (
+              <Text className="loading">加载中...</Text>
+            ) : messages.length === 0 ? (
+              <Text className="empty-tip">暂无消息，发一句打招呼吧</Text>
+            ) : (
+              messages.map((m) => (
+                <View
+                  key={m.id}
+                  id={`msg-${m.id}`}
+                  className={`msg-row ${m.isFromMe ? 'me' : ''}`}
+                >
+                  <View className={`bubble ${m.isFromMe ? 'me' : ''}`}>
+                    <Text className="text">{m.content}</Text>
+                    <Text className="time">{formatTime(m.createTime)}</Text>
+                  </View>
+                </View>
+              ))
+            )}
+          </View>
+        </ScrollView>
       <View className="input-bar">
         <Input
           className="input"

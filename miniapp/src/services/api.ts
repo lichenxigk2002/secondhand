@@ -92,6 +92,8 @@ export const orderApi = {
     api.get<{ list: OrderItem[] }>('/api/order/mine', params, opts),
   create: (goodsId: number) =>
     api.post<{ order: OrderItem }>('/api/order/create', { goodsId }),
+  send: (orderId: number) =>
+    api.put<{ order: OrderItem }>(`/api/order/${orderId}/send`),
   complete: (orderId: number) =>
     api.put<{ order: OrderItem }>(`/api/order/${orderId}/complete`),
 }

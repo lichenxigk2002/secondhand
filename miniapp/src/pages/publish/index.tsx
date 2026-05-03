@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { View, Text, Input, Textarea, Button, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { aiApi, goodsApi, AiGoodsDraft, AiGoodsPrecheckResult } from '@/services/api'
-import { uploadImages } from '@/utils/upload'
+import { uploadImages, isTempPath } from '@/utils/upload'
+import { fixImageUrl } from '@/utils/request'
 import { setTabBarSelected } from '@/utils/tabbar-state'
 import './index.scss'
 
@@ -130,8 +131,8 @@ export default function Publish() {
 
     setAiLoading(true)
     try {
-      let imageUrls = images.filter((item) => item.startsWith('http'))
-      const localImages = images.filter((item) => !item.startsWith('http'))
+      let imageUrls = images.filter((item) => !isTempPath(item))
+      const localImages = images.filter((item) => isTempPath(item))
       if (localImages.length > 0) {
         if (!Taro.getStorageSync('token')) {
           Taro.showToast({ title: '登录后可启用图片识别，先按文字生成', icon: 'none' })
@@ -266,7 +267,7 @@ export default function Publish() {
     setLoading(true)
     try {
       let imageUrls = images
-      if (images.some((u) => !u.startsWith('http'))) {
+      if (images.some((u) => isTempPath(u))) {
         Taro.showLoading({ title: '上传中...' })
         imageUrls = await uploadImages(images)
         Taro.hideLoading()
@@ -428,7 +429,7 @@ export default function Publish() {
           <View className="imgs">
             {images.map((url, i) => (
               <View key={i} className="img-wrap">
-                <Image src={url} className="img" mode="aspectFill" />
+                <Image src={fixImageUrl(url)} className="img" mode="aspectFill" />
                 <Text className="remove-img" onClick={() => removeImage(i)}>×</Text>
               </View>
             ))}

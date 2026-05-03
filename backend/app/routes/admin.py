@@ -53,9 +53,9 @@ def _admin_name(admin):
 
 
 def _ensure_default_admin():
-    if Admin.query.first():
-        return
     username = os.getenv('ADMIN_USERNAME', 'admin')
+    if Admin.query.filter_by(username=username).first():
+        return
     password = os.getenv('ADMIN_PASSWORD', 'admin123456')
     admin = Admin(
         username=username,

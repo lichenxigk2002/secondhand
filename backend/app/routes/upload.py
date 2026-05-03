@@ -28,5 +28,6 @@ def upload_image():
     name = f'{uuid.uuid4().hex}.{ext}'
     path = os.path.join(UPLOAD_DIR, name)
     f.save(path)
-    base = request.host_url.rstrip('/')
-    return {'url': f'{base}/uploads/{name}'}
+    
+    # 改为返回相对路径，不再硬编码 IP 地址
+    return {'url': f'/uploads/{name}'}

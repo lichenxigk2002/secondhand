@@ -1,22 +1,16 @@
 import { useState, useEffect } from 'react'
-import { View, Text, ScrollView } from '@tarojs/components'
+import { View, Text, ScrollView, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { favoriteApi, Goods } from '@/services/api'
-import GoodCard from '@/components/GoodCard'
+import { fixImageUrl } from '@/utils/request'
 import './index.scss'
 
 export default function Favorites() {
   const [list, setList] = useState<Goods[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    load()
-  }, [])
-
   Taro.useDidShow(() => {
-    if (Taro.getStorageSync('token')) {
-      load()
-    }
+    load()
   })
 
   const load = () => {
@@ -31,6 +25,10 @@ export default function Favorites() {
       .then((res) => setList(res.list || []))
       .catch(() => setList([]))
       .finally(() => setLoading(false))
+  }
+
+  const goDetail = (g: Goods) => {
+    Taro.navigateTo({ url: `/pages/detail/index?id=${g.id}` })
   }
 
   if (!Taro.getStorageSync('token')) {
@@ -66,9 +64,27 @@ export default function Favorites() {
             </Text>
           </View>
         ) : (
-          <View className="goods-grid">
-            {list.map((item) => (
-              <GoodCard key={item.id} goods={item} />
+          <View className="goods-list">
+            {list.map((g) => (
+              <View key={g.id} className="item" onClick={() => goDetail(g)}>
+                <Image
+                  src={fixImageUrl(g.images?.[0] || '')}
+                  className="thumb"
+                  mode="aspectFill"
+                />
+                <View className="info">
+                  <Text className="title">{g.title}</Text>
+                  <Text className="price">¥{g.price}</Text>
+                  <View className="user-row">
+                    <Image
+                      src={fixImageUrl(g.user?.avatar || '')}
+                      className="avatar"
+                      mode="aspectFill"
+                    />
+                    <Text className="name">{g.user?.nickName || '用户'}</Text>
+                  </View>
+                </View>
+              </View>
             ))}
           </View>
         )}

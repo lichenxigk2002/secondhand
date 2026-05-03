@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, Image, Button } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { goodsApi, Goods } from '@/services/api'
+import { fixImageUrl } from '@/utils/request'
 import './index.scss'
 
 const STATUS_MAP: Record<number, string> = {
@@ -127,7 +128,7 @@ export default function MyGoods() {
           list.map((g) => (
             <View key={g.id} className="item" onClick={() => goDetail(g)}>
               <Image
-                src={g.images?.[0] || ''}
+                src={fixImageUrl(g.images?.[0] || '')}
                 className="thumb"
                 mode="aspectFill"
               />

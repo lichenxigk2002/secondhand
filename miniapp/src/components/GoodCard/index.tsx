@@ -1,6 +1,7 @@
 import { View, Text, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import type { Goods } from '@/services/api'
+import { fixImageUrl } from '@/utils/request'
 import './index.scss'
 
 interface Props {
@@ -18,7 +19,7 @@ export default function GoodCard({ goods }: Props) {
   return (
     <View className="good-card" onClick={goDetail}>
       <View className="thumb-wrap">
-        <Image className="thumb" src={img} mode="aspectFill" lazyLoad />
+        <Image className="thumb" src={fixImageUrl(img)} mode="aspectFill" lazyLoad />
         {goods.distance != null && (
           <View className="distance-tag">
             <Text>{goods.distance < 1 ? `${(goods.distance * 1000).toFixed(0)}m` : `${goods.distance.toFixed(1)}km`}</Text>
@@ -35,7 +36,7 @@ export default function GoodCard({ goods }: Props) {
           <View className="user-row">
             <Image
               className="avatar"
-              src={typeof user.avatar === 'string' ? user.avatar : 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0'}
+              src={fixImageUrl(user.avatar)}
               mode="aspectFill"
             />
             <Text className="name">{String(user?.nickName ?? '')}</Text>

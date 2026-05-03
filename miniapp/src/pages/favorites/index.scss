@@ -19,7 +19,6 @@
 
   .list {
     height: 100vh;
-    padding: 16rpx;
   }
 
   .loading {
@@ -52,10 +51,69 @@
     }
   }
 
-  .goods-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16rpx;
-    align-items: flex-start;
+  .goods-list {
+    padding: 16rpx;
+
+    .item {
+      display: flex;
+      background: #fff;
+      border-radius: 22rpx;
+      padding: 24rpx;
+      margin-bottom: 16rpx;
+      box-shadow: 0 8rpx 24rpx rgba(15, 23, 42, 0.05);
+
+      .thumb {
+        width: 160rpx;
+        height: 160rpx;
+        border-radius: 16rpx;
+        background: #f5f6f8;
+        flex-shrink: 0;
+      }
+
+      .info {
+        flex: 1;
+        margin-left: 24rpx;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+
+        .title {
+          font-size: 30rpx;
+          color: #333;
+          font-weight: 600;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+        }
+
+        .price {
+          font-size: 32rpx;
+          color: var(--color-price);
+          font-weight: bold;
+          margin-top: 12rpx;
+        }
+
+        .user-row {
+          display: flex;
+          align-items: center;
+          margin-top: auto;
+          padding-top: 12rpx;
+
+          .avatar {
+            width: 32rpx;
+            height: 32rpx;
+            border-radius: 50%;
+            margin-right: 10rpx;
+          }
+
+          .name {
+            font-size: 22rpx;
+            color: #999;
+          }
+        }
+      }
+    }
   }
 }

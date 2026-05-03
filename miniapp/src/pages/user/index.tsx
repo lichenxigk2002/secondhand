@@ -4,6 +4,7 @@ import Taro from '@tarojs/taro'
 import { userApi, messageApi } from '@/services/api'
 import type { User, UserStats } from '@/services/api'
 import { setTabBarSelected } from '@/utils/tabbar-state'
+import { fixImageUrl } from '@/utils/request'
 import './index.scss'
 
 const defaultStats: UserStats = { myGoodsCount: 0, favoriteCount: 0, browseHistoryCount: 0 }
@@ -36,7 +37,6 @@ export default function UserPage() {
   const updateMessageBadge = () => {
     if (!Taro.getStorageSync('token')) {
       setUnreadCount(0)
-      Taro.removeTabBarBadge({ index: 2 }).catch(() => {})
       return
     }
     messageApi
@@ -44,15 +44,9 @@ export default function UserPage() {
       .then((res) => {
         const n = res?.count ?? 0
         setUnreadCount(n)
-        if (n > 0) {
-          Taro.setTabBarBadge({ index: 2, text: n > 99 ? '99+' : String(n) })
-        } else {
-          Taro.removeTabBarBadge({ index: 2 }).catch(() => {})
-        }
       })
       .catch(() => {
         setUnreadCount(0)
-        Taro.removeTabBarBadge({ index: 2 }).catch(() => {})
       })
   }
 
@@ -96,7 +90,6 @@ export default function UserPage() {
         setUser(null)
         setStats(defaultStats)
         setUnreadCount(0)
-        Taro.removeTabBarBadge({ index: 2 }).catch(() => {})
       },
     })
   }
@@ -126,7 +119,7 @@ export default function UserPage() {
       </View>
       <View className="header">
         <View className="user-card">
-          <Image src={user?.avatar || ''} className="avatar" />
+          <Image src={fixImageUrl(user?.avatar || '')} className="avatar" />
           <View className="info">
             <Text className="name">{user?.nickName || '用户'}</Text>
             {user?.creditScore != null && (

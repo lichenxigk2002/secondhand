@@ -1,13 +1,18 @@
 .chat-page {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   background: #f7f8fa;
+  overflow: hidden;
 
   .message-list {
     flex: 1;
-    height: calc(100vh - 120rpx);
-    padding: 24rpx;
+    height: 0; // 关键：在 flex 布局中，ScrollView 需要设置 height: 0 才能正确占满剩余空间并内部滚动
+    
+    .message-list-inner {
+      padding: 24rpx;
+      padding-bottom: 40rpx;
+    }
   }
 
   .loading,

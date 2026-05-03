@@ -19,12 +19,21 @@ const config = {
     'process.env.TARO_APP_WS': JSON.stringify(process.env.TARO_APP_WS || ''),
   },
   copy: {
-    patterns: [{ from: 'src/assets', to: 'dist/assets' }],
+    patterns: [
+      { from: 'src/assets', to: 'dist/assets' },
+      { 
+        from: 'src/components/tdesign-miniprogram', 
+        to: 'dist/components/tdesign-miniprogram' 
+      }
+    ],
     options: {},
   },
   framework: 'react',
   compiler: {
     type: 'webpack5',
+    prebundle: {
+      enable: false
+    }
   },
   cache: {
     enable: false,
@@ -73,6 +82,7 @@ const config = {
   },
   alias: {
     '@': path.resolve(__dirname, '..', 'src'),
+    'tdesign-miniprogram': path.resolve(__dirname, '..', 'src/components/tdesign-miniprogram'),
   },
 }
 

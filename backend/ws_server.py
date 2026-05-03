@@ -5,7 +5,6 @@ from urllib.parse import urlparse, parse_qs
 
 import jwt
 import websockets
-from websockets.server import WebSocketServerProtocol
 
 from app import create_app, db
 from app.models import Conversation, Message, User
@@ -15,17 +14,25 @@ from config import Config
 app = create_app()
 
 # user_id -> set of websockets
-connections: Dict[int, Set[WebSocketServerProtocol]] = {}
+connections: Dict[int, Set] = {}
 
 
-async def handle_connection(ws: WebSocketServerProtocol):
+async def handle_connection(ws):
     """
     简单 WebSocket 聊天服务：
     - 通过 query 中的 token 鉴权
     - 只处理 type=send 的消息：{"type":"send","conversationId":123,"content":"..."}
     - 新消息写入数据库，并向会话双方在线连接推送 type=message
     """
-    parsed = urlparse(ws.path)
+    # 兼容新旧版本 websockets 库获取路径的方式
+    path = getattr(ws, 'path', None)
+    if path is None:
+        try:
+            path = ws.request.path
+        except AttributeError:
+            path = ""
+
+    parsed = urlparse(path)
     qs = parse_qs(parsed.query or "")
     token = (qs.get("token") or [""])[0]
 
@@ -48,6 +55,8 @@ async def handle_connection(ws: WebSocketServerProtocol):
     conns.add(ws)
     try:
         async for raw in ws:
+            if raw == "ping":
+                continue
             try:
                 data = json.loads(raw)
             except Exception:
