@@ -15,25 +15,26 @@
 
 ```bash
 cd backend
-python -m pip install -r requirements.txt
+py -m venv venv
+.\venv\Scripts\python.exe -m pip install -r requirements.txt
 cp .env.example .env   # 编辑 .env 填写数据库与微信配置
 ```
 
 创建数据库并执行迁移：
 ```bash
 mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS lbs_secondhand DEFAULT CHARACTER SET utf8mb4;"
-flask db upgrade   # 或 alembic upgrade head
+.\venv\Scripts\python.exe -m flask db upgrade
 ```
 
 启动：
 ```bash
-python run.py
+.\venv\Scripts\python.exe run.py
 ```
 
 如需演示实时聊天推送，另开一个终端启动 WebSocket 服务：
 
 ```bash
-python ws_server.py
+.\venv\Scripts\python.exe ws_server.py
 ```
 
 ### 2. 小程序前端
@@ -138,7 +139,7 @@ ADMIN_PASSWORD=admin123456
 
 ### 1. 请求根本没到后端 (网络/防火墙)
 
-**现象**：运行 `python run.py` 的终端里，在小程序发起请求时**没有**出现 `[Req] GET /api/xxx` 这类日志。
+**现象**：运行 `.\venv\Scripts\python.exe run.py` 的终端里，在小程序发起请求时**没有**出现 `[Req] GET /api/xxx` 这类日志。
 
 **处理**：让本机 5002 端口可被访问。
 
